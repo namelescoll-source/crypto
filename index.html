@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>Crypto Bot - Анимированный интерфейс</title>
+    <title>Crypto Bot - Полностью рабочий интерфейс</title>
     
-    <!-- Font Awesome 6 (иконки) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <style>
@@ -19,7 +16,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Основные переменные */
         :root {
             --bg-dark: #0a0a0c;
             --bg-card: #13151a;
@@ -35,13 +31,11 @@
 
         body {
             background: var(--bg-dark);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--text-primary);
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
-        /* Анимированный градиентный фон */
         body::before {
             content: '';
             position: fixed;
@@ -49,91 +43,39 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 20% 50%, rgba(0, 212, 126, 0.08) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(0, 100, 255, 0.05) 0%, transparent 60%);
+            background: radial-gradient(circle at 20% 50%, rgba(0, 212, 126, 0.08) 0%, transparent 50%);
             pointer-events: none;
             z-index: -1;
         }
 
-        /* Контентная область */
         .content {
             padding: 20px;
             padding-bottom: 85px;
-            animation: fadeInUp 0.4s ease-out;
+            animation: fadeInUp 0.3s ease-out;
         }
 
-        /* Анимации */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 0.5;
-            }
-            50% {
-                transform: scale(1.2);
-                opacity: 1;
-            }
-        }
-
-        @keyframes shimmer {
-            0% {
-                background-position: -200% 0;
-            }
-            100% {
-                background-position: 200% 0;
-            }
-        }
-
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
-        /* Карточка баланса */
         .balance-card {
             background: linear-gradient(135deg, var(--bg-card) 0%, #0d0f14 100%);
             border-radius: 32px;
             padding: 24px;
             margin-bottom: 20px;
             border: 1px solid var(--border);
-            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
-        }
-
-        .balance-card:hover {
-            border-color: var(--green-primary);
-            transform: translateY(-2px);
         }
 
         .balance-label {
             font-size: 14px;
             color: var(--text-secondary);
-            letter-spacing: 0.5px;
         }
 
         .balance-amount {
@@ -146,21 +88,6 @@
             background-clip: text;
         }
 
-        .balance-change {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: rgba(0, 212, 126, 0.1);
-        }
-
-        .balance-change.positive {
-            color: var(--green-primary);
-        }
-
-        /* Кнопки действий */
         .actions-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -178,20 +105,13 @@
             transition: all 0.2s ease;
         }
 
-        .action-btn:hover {
-            transform: translateY(-3px);
-            border-color: var(--green-primary);
-            box-shadow: 0 5px 20px rgba(0, 212, 126, 0.15);
-        }
-
         .action-btn:active {
-            transform: translateY(0);
+            transform: scale(0.95);
         }
 
         .action-icon {
             font-size: 24px;
             margin-bottom: 6px;
-            display: inline-block;
         }
 
         .action-label {
@@ -199,7 +119,6 @@
             color: var(--text-secondary);
         }
 
-        /* Статистика */
         .stats-row {
             display: flex;
             gap: 12px;
@@ -212,11 +131,6 @@
             border-radius: 20px;
             padding: 16px;
             border: 1px solid var(--border);
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            border-color: var(--green-primary);
         }
 
         .stat-value {
@@ -225,7 +139,6 @@
             margin-top: 8px;
         }
 
-        /* Секция с транзакциями */
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -258,14 +171,14 @@
             justify-content: space-between;
             align-items: center;
             border: 1px solid var(--border);
-            transition: all 0.25s ease;
             cursor: pointer;
+            transition: all 0.2s ease;
             animation: slideIn 0.3s ease backwards;
         }
 
-        .transaction-item:hover {
-            border-color: var(--green-primary);
-            transform: translateX(4px);
+        .transaction-item:active {
+            transform: scale(0.98);
+            background: #1a1d24;
         }
 
         .transaction-left {
@@ -299,11 +212,6 @@
             text-align: right;
         }
 
-        .transaction-amount .amount {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
         .transaction-amount .amount.positive {
             color: var(--green-primary);
         }
@@ -317,7 +225,6 @@
             color: var(--text-tertiary);
         }
 
-        /* Анимированная нижняя панель */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -341,52 +248,93 @@
             cursor: pointer;
             color: var(--text-secondary);
             font-size: 10px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
             padding: 8px 16px;
             border-radius: 30px;
             background: transparent;
             border: none;
-            font-family: inherit;
-            position: relative;
         }
 
         .nav-item i {
             font-size: 22px;
-            transition: all 0.2s ease;
         }
 
         .nav-item.active {
             color: var(--green-primary);
         }
 
-        .nav-item.active i {
-            transform: translateY(-2px);
-        }
-
-        .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 3px;
-            background: var(--green-primary);
-            border-radius: 2px;
-            animation: slideIn 0.3s ease;
-        }
-
         .nav-item:active {
             transform: scale(0.95);
         }
 
-        /* Анимированная волна для графика */
-        .wave-container {
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeInUp 0.2s ease;
+        }
+
+        .modal-content {
             background: var(--bg-card);
-            border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 20px;
+            border-radius: 32px;
+            padding: 24px;
+            width: 100%;
+            max-width: 340px;
             border: 1px solid var(--border);
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 16px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .modal-btn.confirm {
+            background: var(--green-primary);
+            color: white;
+        }
+
+        .modal-btn.cancel {
+            background: var(--border);
+            color: var(--text-secondary);
         }
 
         canvas {
@@ -394,66 +342,44 @@
             height: 120px;
         }
 
-        /* Анимация загрузки */
-        .loading-spinner {
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .qr-code {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
             display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--border);
-            border-top-color: var(--green-primary);
-            border-radius: 50%;
-            animation: rotate 0.6s linear infinite;
+            margin-bottom: 16px;
         }
 
-        /* Остальные стили */
-        .hidden {
-            display: none;
-        }
-
-        /* Адаптивность */
-        @media (max-width: 480px) {
-            .content {
-                padding: 16px;
-                padding-bottom: 80px;
-            }
-            .balance-amount {
-                font-size: 36px;
-            }
-            .actions-grid {
-                gap: 8px;
-            }
-            .action-btn {
-                padding: 10px 6px;
-            }
+        .address-text {
+            background: var(--bg-dark);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            word-break: break-all;
+            margin-top: 12px;
         }
     </style>
 </head>
 <body>
-    <div class="content" id="app">
-        <!-- Контент будет загружаться динамически -->
-    </div>
+    <div class="content" id="app"></div>
 
     <div class="bottom-nav">
-        <button class="nav-item active" data-tab="wallet">
-            <i class="fas fa-wallet"></i>
-            <span>Кошелёк</span>
-        </button>
-        <button class="nav-item" data-tab="charts">
-            <i class="fas fa-chart-line"></i>
-            <span>Графики</span>
-        </button>
-        <button class="nav-item" data-tab="swap">
-            <i class="fas fa-exchange-alt"></i>
-            <span>Обмен</span>
-        </button>
-        <button class="nav-item" data-tab="more">
-            <i class="fas fa-user"></i>
-            <span>Профиль</span>
-        </button>
+        <button class="nav-item active" data-tab="wallet"><i class="fas fa-wallet"></i><span>Кошелёк</span></button>
+        <button class="nav-item" data-tab="charts"><i class="fas fa-chart-line"></i><span>Графики</span></button>
+        <button class="nav-item" data-tab="swap"><i class="fas fa-exchange-alt"></i><span>Обмен</span></button>
+        <button class="nav-item" data-tab="more"><i class="fas fa-user"></i><span>Профиль</span></button>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content" id="modalContent"></div>
     </div>
 
     <script>
-        // Инициализация Telegram WebApp
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.expand();
@@ -461,24 +387,242 @@
             tg.ready();
         }
 
-        // Данные для транзакций
-        const transactions = {
-            wallet: [
-                { id: 1, icon: "fas fa-arrow-up", type: "Отправлено", to: "0x742...3ef", amount: -50.25, date: "Сегодня, 14:32", coin: "TON" },
-                { id: 2, icon: "fas fa-arrow-down", type: "Получено", from: "Биржа Bybit", amount: 125.00, date: "Вчера, 09:15", coin: "TON" },
-                { id: 3, icon: "fas fa-gift", type: "Бонус", from: "Реферальная программа", amount: 5.00, date: "2 дня назад", coin: "TON" }
+        // ========== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ==========
+        let userData = {
+            balance: 1284.50,
+            staking: 350,
+            totalEarned: 42.5,
+            tonPrice: 5.67,
+            transactions: [
+                { id: 1, type: "send", title: "Отправлено", address: "0x742...3ef", amount: -50.25, date: "Сегодня, 14:32", coin: "TON" },
+                { id: 2, type: "receive", title: "Получено", address: "Биржа Bybit", amount: 125.00, date: "Вчера, 09:15", coin: "TON" },
+                { id: 3, type: "bonus", title: "Бонус", address: "Реферальная программа", amount: 5.00, date: "2 дня назад", coin: "TON" },
+                { id: 4, type: "swap", title: "Обмен", address: "TON → USDT", amount: -100, result: 567.80, date: "3 дня назад", coin: "TON" }
             ],
-            swap: [
-                { id: 4, icon: "fas fa-sync-alt", type: "Обмен", from: "TON", to: "USDT", amount: -100, result: 567.80, date: "3 дня назад" },
-                { id: 5, icon: "fas fa-sync-alt", type: "Обмен", from: "BTC", to: "TON", amount: -0.001, result: 45.20, date: "5 дней назад" }
-            ]
+            swaps: [
+                { id: 1, from: "TON", to: "USDT", amount: 100, result: 567.80, date: "3 дня назад" }
+            ],
+            referralCode: "CRYPTO7421953",
+            referrals: 3,
+            referralEarned: 15.50
         };
 
-        // Данные для графиков
+        let currentTab = 'wallet';
         let chartData = [42, 38, 45, 52, 48, 55, 60, 58, 62, 68, 65, 70, 75, 72, 78, 82, 80, 85, 88, 92, 95, 90, 88, 85];
-        let chartCanvas = null;
 
-        // Функция для отрисовки графика
+        // ========== ОБНОВЛЕНИЕ БАЛАНСА В ИНТЕРФЕЙСЕ ==========
+        function updateBalanceDisplay() {
+            const balanceEl = document.querySelector('.balance-amount');
+            if (balanceEl) {
+                balanceEl.innerHTML = userData.balance.toFixed(2) + ' TON';
+            }
+            const stakingEl = document.querySelector('.stat-card:first-child .stat-value');
+            if (stakingEl) stakingEl.innerHTML = userData.staking + ' TON';
+            const earnedEl = document.querySelector('.stat-card:last-child .stat-value');
+            if (earnedEl) earnedEl.innerHTML = '+' + userData.totalEarned.toFixed(2) + ' TON';
+        }
+
+        // ========== СОХРАНЕНИЕ ИСТОРИИ ==========
+        function addTransaction(type, title, address, amount, coin = 'TON') {
+            const newTx = {
+                id: userData.transactions.length + 1,
+                type: type,
+                title: title,
+                address: address,
+                amount: amount,
+                date: new Date().toLocaleString(),
+                coin: coin
+            };
+            userData.transactions.unshift(newTx);
+            if (userData.transactions.length > 20) userData.transactions.pop();
+        }
+
+        // ========== ОТПРАВКА TON ==========
+        function showSendModal() {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h3><i class="fas fa-paper-plane"></i> Отправить TON</h3>
+                <input type="text" id="sendAddress" class="modal-input" placeholder="Адрес получателя">
+                <input type="number" id="sendAmount" class="modal-input" placeholder="Сумма в TON">
+                <div class="modal-buttons">
+                    <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
+                    <button class="modal-btn confirm" onclick="sendTransaction()">Отправить</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function sendTransaction() {
+            const address = document.getElementById('sendAddress')?.value;
+            const amount = parseFloat(document.getElementById('sendAmount')?.value);
+            
+            if (!address || address.length < 10) {
+                if (tg) tg.showAlert('❌ Введите корректный адрес');
+                else alert('Введите корректный адрес');
+                return;
+            }
+            
+            if (!amount || amount <= 0) {
+                if (tg) tg.showAlert('❌ Введите сумму больше 0');
+                else alert('Введите сумму больше 0');
+                return;
+            }
+            
+            if (amount > userData.balance) {
+                if (tg) tg.showAlert(`❌ Недостаточно средств! Баланс: ${userData.balance} TON`);
+                else alert(`Недостаточно средств! Баланс: ${userData.balance} TON`);
+                return;
+            }
+            
+            if (tg) {
+                tg.showConfirm(`Отправить ${amount} TON на адрес ${address.slice(0,6)}...${address.slice(-4)}?`, (confirmed) => {
+                    if (confirmed) {
+                        userData.balance -= amount;
+                        addTransaction('send', 'Отправлено', address.slice(0,10)+'...', -amount);
+                        updateBalanceDisplay();
+                        if (currentTab === 'wallet') renderWallet();
+                        tg.showAlert(`✅ Успешно отправлено ${amount} TON!`);
+                        closeModal();
+                    }
+                });
+            } else {
+                userData.balance -= amount;
+                addTransaction('send', 'Отправлено', address.slice(0,10)+'...', -amount);
+                updateBalanceDisplay();
+                if (currentTab === 'wallet') renderWallet();
+                alert(`Отправлено ${amount} TON`);
+                closeModal();
+            }
+        }
+
+        // ========== ПОЛУЧЕНИЕ TON (QR и адрес) ==========
+        function showReceiveModal() {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            const walletAddress = "UQD..." + Math.random().toString(36).substring(2, 10).toUpperCase();
+            modalContent.innerHTML = `
+                <h3><i class="fas fa-qrcode"></i> Получить TON</h3>
+                <div class="qr-container">
+                    <div class="qr-code">
+                        <i class="fas fa-qrcode" style="font-size: 100px; color: #000;"></i>
+                    </div>
+                    <div class="address-text">
+                        <strong>Ваш адрес:</strong><br>
+                        ${walletAddress}
+                    </div>
+                    <p style="margin-top: 16px; font-size: 12px; color: var(--text-tertiary);">
+                        Отправьте TON на этот адрес. Средства поступят автоматически.
+                    </p>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        // ========== ПОКУПКА TON ==========
+        function showBuyModal() {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h3><i class="fas fa-shopping-cart"></i> Купить TON</h3>
+                <input type="number" id="buyAmount" class="modal-input" placeholder="Сумма в USD">
+                <div style="background: var(--bg-dark); border-radius: 16px; padding: 16px; margin: 8px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Цена TON:</span>
+                        <span>$${userData.tonPrice}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                        <span>Вы получите:</span>
+                        <span id="estimatedTon">0 TON</span>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
+                    <button class="modal-btn confirm" onclick="buyTon()">Купить</button>
+                </div>
+            `;
+            
+            const amountInput = document.getElementById('buyAmount');
+            if (amountInput) {
+                amountInput.oninput = () => {
+                    const usd = parseFloat(amountInput.value) || 0;
+                    const ton = (usd / userData.tonPrice).toFixed(4);
+                    const estimateSpan = document.getElementById('estimatedTon');
+                    if (estimateSpan) estimateSpan.innerText = ton + ' TON';
+                };
+            }
+            modal.classList.add('active');
+        }
+
+        function buyTon() {
+            const usdAmount = parseFloat(document.getElementById('buyAmount')?.value || 0);
+            if (!usdAmount || usdAmount <= 0) {
+                if (tg) tg.showAlert('❌ Введите сумму в USD');
+                else alert('Введите сумму');
+                return;
+            }
+            
+            const tonAmount = usdAmount / userData.tonPrice;
+            
+            if (tg) {
+                tg.showConfirm(`Купить ${tonAmount.toFixed(4)} TON за $${usdAmount}?`, (confirmed) => {
+                    if (confirmed) {
+                        userData.balance += tonAmount;
+                        addTransaction('receive', 'Покупка TON', 'Банковская карта', tonAmount);
+                        updateBalanceDisplay();
+                        if (currentTab === 'wallet') renderWallet();
+                        tg.showAlert(`✅ Успешно куплено ${tonAmount.toFixed(4)} TON!`);
+                        closeModal();
+                    }
+                });
+            }
+        }
+
+        // ========== ОБМЕН ВАЛЮТ ==========
+        let swapFromCoin = 'TON';
+        let swapToCoin = 'USDT';
+        
+        function performSwap() {
+            const fromAmount = parseFloat(document.getElementById('fromAmount')?.value || 0);
+            if (!fromAmount || fromAmount <= 0) {
+                if (tg) tg.showAlert('❌ Введите сумму для обмена');
+                return;
+            }
+            
+            if (fromAmount > userData.balance) {
+                if (tg) tg.showAlert(`❌ Недостаточно TON! Баланс: ${userData.balance} TON`);
+                return;
+            }
+            
+            const toAmount = fromAmount * userData.tonPrice;
+            
+            if (tg) {
+                tg.showConfirm(`Обменять ${fromAmount} TON на ${toAmount.toFixed(2)} USDT?`, (confirmed) => {
+                    if (confirmed) {
+                        userData.balance -= fromAmount;
+                        addTransaction('swap', 'Обмен валют', `TON → USDT`, -fromAmount);
+                        userData.swaps.unshift({
+                            id: userData.swaps.length + 1,
+                            from: 'TON', to: 'USDT',
+                            amount: fromAmount, result: toAmount,
+                            date: new Date().toLocaleString()
+                        });
+                        updateBalanceDisplay();
+                        if (currentTab === 'swap') renderSwap();
+                        tg.showAlert(`✅ Обмен выполнен! Получено ${toAmount.toFixed(2)} USDT`);
+                        const fromInput = document.getElementById('fromAmount');
+                        if (fromInput) fromInput.value = '';
+                        const toInput = document.getElementById('toAmount');
+                        if (toInput) toInput.value = '';
+                    }
+                });
+            }
+        }
+
+        // ========== ГРАФИК ==========
         function drawChart() {
             const canvas = document.getElementById('priceChart');
             if (!canvas) return;
@@ -486,21 +630,19 @@
             const ctx = canvas.getContext('2d');
             const width = canvas.clientWidth;
             const height = canvas.clientHeight;
-            
             canvas.width = width;
             canvas.height = height;
             
             const padding = 20;
             const chartWidth = width - padding * 2;
             const chartHeight = height - padding * 2;
-            
             const maxValue = Math.max(...chartData);
             const minValue = Math.min(...chartData);
             const range = maxValue - minValue;
             
             ctx.clearRect(0, 0, width, height);
             
-            // Рисуем сетку
+            // Сетка
             ctx.strokeStyle = '#1c1f26';
             ctx.lineWidth = 0.5;
             for (let i = 0; i <= 4; i++) {
@@ -511,17 +653,12 @@
                 ctx.stroke();
             }
             
-            // Рисуем линию графика с градиентом
+            // Линия графика
             ctx.beginPath();
-            const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, '#00d47e');
-            gradient.addColorStop(1, 'rgba(0, 212, 126, 0)');
-            
             let firstPoint = true;
             chartData.forEach((value, index) => {
                 const x = padding + (chartWidth / (chartData.length - 1)) * index;
                 const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
-                
                 if (firstPoint) {
                     ctx.moveTo(x, y);
                     firstPoint = false;
@@ -532,385 +669,267 @@
             ctx.strokeStyle = '#00d47e';
             ctx.lineWidth = 2.5;
             ctx.stroke();
-            
-            // Заливка под графиком
-            ctx.lineTo(width - padding, height - padding);
-            ctx.lineTo(padding, height - padding);
-            ctx.fillStyle = gradient;
-            ctx.fill();
         }
 
-        // Контент для вкладки "Кошелёк"
+        // ========== РЕФЕРАЛЬНАЯ ПРОГРАММА ==========
+        function showReferralModal() {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h3><i class="fas fa-users"></i> Реферальная программа</h3>
+                <div style="background: var(--bg-dark); border-radius: 16px; padding: 16px; margin: 16px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Приглашено друзей:</span>
+                        <span style="color: var(--green-primary);">${userData.referrals}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                        <span>Заработано:</span>
+                        <span style="color: var(--green-primary);">+${userData.referralEarned} TON</span>
+                    </div>
+                </div>
+                <div class="address-text">
+                    <strong>Ваша реферальная ссылка:</strong><br>
+                    t.me/crypto_bot?start=${userData.referralCode}
+                </div>
+                <div class="modal-buttons" style="margin-top: 20px;">
+                    <button class="modal-btn confirm" onclick="copyReferralLink()">Копировать ссылку</button>
+                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function copyReferralLink() {
+            const link = `t.me/crypto_bot?start=${userData.referralCode}`;
+            navigator.clipboard.writeText(link);
+            if (tg) tg.showAlert('✅ Ссылка скопирована!');
+            else alert('Ссылка скопирована!');
+        }
+
+        // ========== БЕЗОПАСНОСТЬ ==========
+        function showSecurityModal() {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h3><i class="fas fa-shield-alt"></i> Безопасность</h3>
+                <div class="address-text" style="margin: 16px 0;">
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+                        <span>2FA аутентификация</span>
+                        <span style="color: var(--green-primary);">Вкл</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+                        <span>Биометрический вход</span>
+                        <span style="color: var(--text-tertiary);">Откл</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+                        <span>Доверенные устройства</span>
+                        <span style="color: var(--green-primary);">3</span>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        // ========== ПОДДЕРЖКА ==========
+        function showSupportModal() {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h3><i class="fas fa-headset"></i> Поддержка</h3>
+                <div class="address-text" style="margin: 16px 0;">
+                    <p>Свяжитесь с нами:</p>
+                    <p style="margin-top: 12px;">📧 support@cryptobot.com</p>
+                    <p>📱 Telegram: @crypto_support</p>
+                    <p>⏰ 24/7 онлайн</p>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn confirm" onclick="openSupportChat()">Написать в поддержку</button>
+                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function openSupportChat() {
+            if (tg) tg.openTelegramLink('https://t.me/durov');
+            else window.open('https://t.me/durov', '_blank');
+            closeModal();
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // ========== ВКЛАДКА "КОШЕЛЕК" ==========
         function renderWallet() {
-            return `
+            const html = `
                 <div class="balance-card">
                     <div class="balance-label">Общий баланс</div>
-                    <div class="balance-amount">1,284.50 TON</div>
-                    <div class="balance-change positive">
-                        <i class="fas fa-arrow-up"></i>
-                        +12.5% за неделю
-                    </div>
+                    <div class="balance-amount">${userData.balance.toFixed(2)} TON</div>
+                    <div class="balance-change positive"><i class="fas fa-arrow-up"></i> +12.5% за неделю</div>
                 </div>
-                
                 <div class="actions-grid">
-                    <div class="action-btn" data-action="send">
-                        <div class="action-icon"><i class="fas fa-paper-plane"></i></div>
-                        <div class="action-label">Отправить</div>
-                    </div>
-                    <div class="action-btn" data-action="receive">
-                        <div class="action-icon"><i class="fas fa-qrcode"></i></div>
-                        <div class="action-label">Получить</div>
-                    </div>
-                    <div class="action-btn" data-action="buy">
-                        <div class="action-icon"><i class="fas fa-shopping-cart"></i></div>
-                        <div class="action-label">Купить</div>
-                    </div>
-                    <div class="action-btn" data-action="history">
-                        <div class="action-icon"><i class="fas fa-history"></i></div>
-                        <div class="action-label">История</div>
-                    </div>
+                    <div class="action-btn" data-action="send"><div class="action-icon"><i class="fas fa-paper-plane"></i></div><div class="action-label">Отправить</div></div>
+                    <div class="action-btn" data-action="receive"><div class="action-icon"><i class="fas fa-qrcode"></i></div><div class="action-label">Получить</div></div>
+                    <div class="action-btn" data-action="buy"><div class="action-icon"><i class="fas fa-shopping-cart"></i></div><div class="action-label">Купить</div></div>
+                    <div class="action-btn" data-action="history"><div class="action-icon"><i class="fas fa-history"></i></div><div class="action-label">История</div></div>
                 </div>
-                
                 <div class="stats-row">
-                    <div class="stat-card">
-                        <div><i class="fas fa-chart-simple"></i> В стейкинге</div>
-                        <div class="stat-value">350 TON</div>
-                    </div>
-                    <div class="stat-card">
-                        <div><i class="fas fa-coins"></i> Доход</div>
-                        <div class="stat-value">+42.5 TON</div>
-                    </div>
+                    <div class="stat-card"><div><i class="fas fa-chart-simple"></i> В стейкинге</div><div class="stat-value">${userData.staking} TON</div></div>
+                    <div class="stat-card"><div><i class="fas fa-coins"></i> Доход</div><div class="stat-value">+${userData.totalEarned.toFixed(2)} TON</div></div>
                 </div>
-                
-                <div class="section-header">
-                    <div class="section-title">Последние транзакции</div>
-                    <div class="section-link" data-view-all>Все →</div>
-                </div>
-                
+                <div class="section-header"><div class="section-title">Последние транзакции</div></div>
                 <div class="transactions-list">
-                    ${transactions.wallet.map((tx, index) => `
-                        <div class="transaction-item" style="animation-delay: ${index * 0.05}s">
+                    ${userData.transactions.slice(0,5).map((tx, i) => `
+                        <div class="transaction-item" style="animation-delay: ${i * 0.05}s">
                             <div class="transaction-left">
-                                <div class="transaction-icon"><i class="${tx.icon}"></i></div>
-                                <div class="transaction-info">
-                                    <h4>${tx.type}</h4>
-                                    <p>${tx.to || tx.from || ''}</p>
-                                </div>
+                                <div class="transaction-icon"><i class="fas ${tx.type === 'send' ? 'fa-arrow-up' : (tx.type === 'receive' ? 'fa-arrow-down' : 'fa-gift')}"></i></div>
+                                <div class="transaction-info"><h4>${tx.title}</h4><p>${tx.address}</p></div>
                             </div>
                             <div class="transaction-amount">
-                                <div class="amount ${tx.amount > 0 ? 'positive' : 'negative'}">
-                                    ${tx.amount > 0 ? '+' : ''}${tx.amount} ${tx.coin || 'TON'}
-                                </div>
+                                <div class="amount ${tx.amount > 0 ? 'positive' : 'negative'}">${tx.amount > 0 ? '+' : ''}${tx.amount.toFixed(2)} ${tx.coin}</div>
                                 <div class="transaction-date">${tx.date}</div>
                             </div>
                         </div>
                     `).join('')}
                 </div>
             `;
+            document.getElementById('app').innerHTML = html;
+            
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const action = btn.getAttribute('data-action');
+                    if (action === 'send') showSendModal();
+                    else if (action === 'receive') showReceiveModal();
+                    else if (action === 'buy') showBuyModal();
+                    else if (action === 'history') showHistoryModal();
+                };
+            });
+            updateBalanceDisplay();
         }
 
-        // Контент для вкладки "Графики"
+        // ========== ВКЛАДКА "ГРАФИКИ" ==========
         function renderCharts() {
-            setTimeout(() => drawChart(), 50);
-            return `
-                <div class="section-header">
-                    <div class="section-title">TON / USDT</div>
-                    <div class="section-link" data-period="week">Неделя</div>
-                </div>
-                
-                <div class="wave-container">
-                    <canvas id="priceChart" style="width:100%; height:120px;"></canvas>
-                </div>
-                
+            const html = `
+                <div class="section-header"><div class="section-title">TON / USDT</div></div>
+                <div class="balance-card"><canvas id="priceChart" style="width:100%; height:120px;"></canvas></div>
                 <div class="stats-row">
-                    <div class="stat-card">
-                        <div>Цена TON</div>
-                        <div class="stat-value">$5.67</div>
-                    </div>
-                    <div class="stat-card">
-                        <div>24ч изменение</div>
-                        <div class="stat-value" style="color: #00d47e;">+2.34%</div>
-                    </div>
+                    <div class="stat-card"><div>Цена TON</div><div class="stat-value">$${userData.tonPrice}</div></div>
+                    <div class="stat-card"><div>24ч изменение</div><div class="stat-value" style="color: #00d47e;">+2.34%</div></div>
                 </div>
-                
-                <div class="section-header" style="margin-top: 24px;">
-                    <div class="section-title">Популярные пары</div>
-                </div>
-                
+                <div class="section-header"><div class="section-title">Популярные пары</div></div>
                 <div class="transactions-list">
-                    <div class="transaction-item">
-                        <div class="transaction-left">
-                            <div class="transaction-icon"><i class="fab fa-bitcoin"></i></div>
-                            <div class="transaction-info">
-                                <h4>BTC/TON</h4>
-                                <p>11,234 TON</p>
-                            </div>
-                        </div>
-                        <div class="transaction-amount">
-                            <div class="amount positive">+1.23%</div>
-                            <div class="transaction-date">$67,890</div>
-                        </div>
-                    </div>
-                    <div class="transaction-item">
-                        <div class="transaction-left">
-                            <div class="transaction-icon"><i class="fab fa-ethereum"></i></div>
-                            <div class="transaction-info">
-                                <h4>ETH/TON</h4>
-                                <p>610 TON</p>
-                            </div>
-                        </div>
-                        <div class="transaction-amount">
-                            <div class="amount positive">+0.56%</div>
-                            <div class="transaction-date">$3,456</div>
-                        </div>
-                    </div>
+                    <div class="transaction-item"><div class="transaction-left"><div class="transaction-icon"><i class="fab fa-bitcoin"></i></div><div class="transaction-info"><h4>BTC/TON</h4><p>11,234 TON</p></div></div><div class="transaction-amount"><div class="amount positive">+1.23%</div><div class="transaction-date">$67,890</div></div></div>
+                    <div class="transaction-item"><div class="transaction-left"><div class="transaction-icon"><i class="fab fa-ethereum"></i></div><div class="transaction-info"><h4>ETH/TON</h4><p>610 TON</p></div></div><div class="transaction-amount"><div class="amount positive">+0.56%</div><div class="transaction-date">$3,456</div></div></div>
                 </div>
             `;
+            document.getElementById('app').innerHTML = html;
+            setTimeout(() => drawChart(), 100);
         }
 
-        // Контент для вкладки "Обмен"
+        // ========== ВКЛАДКА "ОБМЕН" ==========
         function renderSwap() {
-            return `
+            const html = `
                 <div class="balance-card">
                     <div style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>Отправляете</span>
-                            <span>Баланс: 1,284.50 TON</span>
-                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Отправляете</span><span>Баланс: ${userData.balance.toFixed(2)} TON</span></div>
                         <div style="background: #0a0a0c; border-radius: 20px; padding: 16px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <input type="number" id="fromAmount" placeholder="0" style="background: transparent; border: none; font-size: 28px; color: white; outline: none; width: 60%;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <i class="fab fa-telegram"></i> TON
-                                </div>
+                                <div><i class="fab fa-telegram"></i> TON</div>
                             </div>
                             <div style="color: var(--text-tertiary); margin-top: 8px;">≈ $0.00</div>
                         </div>
                     </div>
-                    
-                    <div style="text-align: center; margin: -8px 0;">
-                        <div style="background: var(--green-primary); width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
-                            <i class="fas fa-arrow-down" style="color: white;"></i>
+                    <div style="text-align: center; margin: -8px 0;"><div style="background: var(--green-primary); width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;"><i class="fas fa-arrow-down" style="color: white;"></i></div></div>
+                    <div><div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Получаете</span></div>
+                    <div style="background: #0a0a0c; border-radius: 20px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <input type="text" id="toAmount" placeholder="0" readonly style="background: transparent; border: none; font-size: 28px; color: white; outline: none; width: 60%;">
+                            <div><i class="fas fa-dollar-sign"></i> USDT</div>
                         </div>
-                    </div>
-                    
-                    <div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>Получаете</span>
-                        </div>
-                        <div style="background: #0a0a0c; border-radius: 20px; padding: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <input type="text" id="toAmount" placeholder="0" readonly style="background: transparent; border: none; font-size: 28px; color: white; outline: none; width: 60%;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-dollar-sign"></i> USDT
-                                </div>
-                            </div>
-                            <div style="color: var(--text-tertiary); margin-top: 8px;">≈ $0.00</div>
-                        </div>
-                    </div>
+                        <div style="color: var(--text-tertiary); margin-top: 8px;">≈ $0.00</div>
+                    </div></div>
                 </div>
-                
-                <button class="action-btn" id="swapActionBtn" style="width: 100%; padding: 16px; background: var(--green-primary); color: white; font-weight: 600; border: none; margin-top: 16px;">
-                    <i class="fas fa-exchange-alt"></i> Обменять
-                </button>
-                
-                <div class="section-header" style="margin-top: 24px;">
-                    <div class="section-title">История обменов</div>
-                </div>
-                
-                <div class="transactions-list">
-                    ${transactions.swap.map((tx, index) => `
-                        <div class="transaction-item" style="animation-delay: ${index * 0.05}s">
-                            <div class="transaction-left">
-                                <div class="transaction-icon"><i class="${tx.icon}"></i></div>
-                                <div class="transaction-info">
-                                    <h4>${tx.type}</h4>
-                                    <p>${tx.from} → ${tx.to}</p>
-                                </div>
-                            </div>
-                            <div class="transaction-amount">
-                                <div class="amount">${tx.amount} ${tx.from}</div>
-                                <div class="transaction-date">+${tx.result} ${tx.to}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
+                <button class="action-btn" id="swapActionBtn" style="width:100%; padding:16px; background:var(--green-primary); color:white; font-weight:600; border:none; margin-top:16px;"><i class="fas fa-exchange-alt"></i> Обменять</button>
+                <div class="section-header" style="margin-top:24px;"><div class="section-title">История обменов</div></div>
+                <div class="transactions-list">${userData.swaps.map((s, i) => `<div class="transaction-item" style="animation-delay: ${i*0.05}s"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-sync-alt"></i></div><div class="transaction-info"><h4>Обмен</h4><p>${s.from} → ${s.to}</p></div></div><div class="transaction-amount"><div class="amount">${s.amount} ${s.from}</div><div class="transaction-date">+${s.result} ${s.to}</div></div></div>`).join('')}</div>
             `;
-        }
-
-        // Контент для вкладки "Профиль"
-        function renderProfile() {
-            return `
-                <div class="balance-card" style="text-align: center;">
-                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #00d47e, #00995a); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
-                        <i class="fas fa-user" style="font-size: 40px;"></i>
-                    </div>
-                    <h3>Алексей К.</h3>
-                    <p style="color: var(--text-tertiary); margin-top: 4px;">ID: 7421953</p>
-                </div>
-                
-                <div class="transactions-list">
-                    <div class="transaction-item" data-action="referral">
-                        <div class="transaction-left">
-                            <div class="transaction-icon"><i class="fas fa-users"></i></div>
-                            <div class="transaction-info">
-                                <h4>Реферальная программа</h4>
-                                <p>Пригласи друзей и получай бонусы</p>
-                            </div>
-                        </div>
-                        <div><i class="fas fa-chevron-right" style="color: var(--text-tertiary);"></i></div>
-                    </div>
-                    <div class="transaction-item" data-action="security">
-                        <div class="transaction-left">
-                            <div class="transaction-icon"><i class="fas fa-shield-alt"></i></div>
-                            <div class="transaction-info">
-                                <h4>Безопасность</h4>
-                                <p>2FA, доверенные устройства</p>
-                            </div>
-                        </div>
-                        <div><i class="fas fa-chevron-right" style="color: var(--text-tertiary);"></i></div>
-                    </div>
-                    <div class="transaction-item" data-action="language">
-                        <div class="transaction-left">
-                            <div class="transaction-icon"><i class="fas fa-globe"></i></div>
-                            <div class="transaction-info">
-                                <h4>Язык</h4>
-                                <p>Русский</p>
-                            </div>
-                        </div>
-                        <div><i class="fas fa-chevron-right" style="color: var(--text-tertiary);"></i></div>
-                    </div>
-                    <div class="transaction-item" data-action="support">
-                        <div class="transaction-left">
-                            <div class="transaction-icon"><i class="fas fa-headset"></i></div>
-                            <div class="transaction-info">
-                                <h4>Поддержка</h4>
-                                <p>Помощь и обратная связь</p>
-                            </div>
-                        </div>
-                        <div><i class="fas fa-chevron-right" style="color: var(--text-tertiary);"></i></div>
-                    </div>
-                    <div class="transaction-item" data-action="close">
-                        <div class="transaction-left">
-                            <div class="transaction-icon"><i class="fas fa-sign-out-alt"></i></div>
-                            <div class="transaction-info">
-                                <h4>Закрыть приложение</h4>
-                                <p>Выйти из Crypto Bot</p>
-                            </div>
-                        </div>
-                        <div><i class="fas fa-chevron-right" style="color: var(--text-tertiary);"></i></div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Основная функция рендеринга
-        let currentTab = 'wallet';
-
-        function renderTab(tabName) {
-            let html = '';
-            switch(tabName) {
-                case 'wallet': html = renderWallet(); break;
-                case 'charts': html = renderCharts(); break;
-                case 'swap': html = renderSwap(); break;
-                case 'more': html = renderProfile(); break;
-                default: html = renderWallet();
-            }
+            document.getElementById('app').innerHTML = html;
             
-            const appDiv = document.getElementById('app');
-            appDiv.style.animation = 'none';
-            appDiv.offsetHeight; // Trigger reflow
-            appDiv.style.animation = 'fadeInUp 0.4s ease-out';
-            appDiv.innerHTML = html;
-            
-            // Обновляем активный класс у навигации
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                if (btn.getAttribute('data-tab') === tabName) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-            
-            // Добавляем обработчики после рендера
-            attachEventHandlers(tabName);
-            
-            // Перерисовываем график если нужно
-            if (tabName === 'charts') {
-                setTimeout(() => drawChart(), 100);
-                window.addEventListener('resize', () => drawChart());
-            }
-        }
-
-        // Обработчики событий
-        function attachEventHandlers(tabName) {
-            // Кнопка обмена
-            const swapBtn = document.getElementById('swapActionBtn');
-            if (swapBtn) {
-                swapBtn.onclick = () => {
-                    const fromAmount = document.getElementById('fromAmount');
-                    const toAmount = document.getElementById('toAmount');
-                    const amount = parseFloat(fromAmount?.value || 0);
-                    if (amount > 0) {
-                        if (tg) tg.showConfirm(`Обменять ${amount} TON на ${(amount * 5.67).toFixed(2)} USDT?`, (confirmed) => {
-                            if (confirmed && tg) tg.showAlert('✅ Обмен выполнен успешно!');
-                        });
-                    } else if (tg) {
-                        tg.showAlert('Введите сумму для обмена');
-                    }
-                };
-            }
-            
-            // Поле ввода для обмена
             const fromInput = document.getElementById('fromAmount');
             const toInput = document.getElementById('toAmount');
             if (fromInput && toInput) {
                 fromInput.oninput = () => {
                     const val = parseFloat(fromInput.value) || 0;
-                    toInput.value = (val * 5.67).toFixed(2);
+                    toInput.value = (val * userData.tonPrice).toFixed(2);
                 };
             }
+            document.getElementById('swapActionBtn').onclick = performSwap;
+        }
+
+        // ========== ВКЛАДКА "ПРОФИЛЬ" ==========
+        function renderProfile() {
+            const html = `
+                <div class="balance-card" style="text-align:center;"><div style="width:80px;height:80px;background:linear-gradient(135deg,#00d47e,#00995a);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;"><i class="fas fa-user" style="font-size:40px;"></i></div><h3>Алексей К.</h3><p style="color:var(--text-tertiary);margin-top:4px;">ID: 7421953</p></div>
+                <div class="transactions-list">
+                    <div class="transaction-item" data-action="referral"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-users"></i></div><div class="transaction-info"><h4>Реферальная программа</h4><p>Пригласи друзей и получай бонусы</p></div></div><div><i class="fas fa-chevron-right"></i></div></div>
+                    <div class="transaction-item" data-action="security"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-shield-alt"></i></div><div class="transaction-info"><h4>Безопасность</h4><p>2FA, доверенные устройства</p></div></div><div><i class="fas fa-chevron-right"></i></div></div>
+                    <div class="transaction-item" data-action="support"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-headset"></i></div><div class="transaction-info"><h4>Поддержка</h4><p>Помощь и обратная связь</p></div></div><div><i class="fas fa-chevron-right"></i></div></div>
+                    <div class="transaction-item" data-action="close"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-sign-out-alt"></i></div><div class="transaction-info"><h4>Закрыть приложение</h4><p>Выйти из Crypto Bot</p></div></div><div><i class="fas fa-chevron-right"></i></div></div>
+                </div>
+            `;
+            document.getElementById('app').innerHTML = html;
             
-            // Обработчики для экшн-кнопок
-            document.querySelectorAll('.action-btn[data-action]').forEach(btn => {
-                btn.onclick = () => {
-                    if (tg) tg.showAlert(`Функция "${btn.querySelector('.action-label')?.innerText || btn.dataset.action}" в разработке`);
-                };
-            });
-            
-            // Обработчики для пунктов профиля
             document.querySelectorAll('.transaction-item[data-action]').forEach(item => {
                 item.onclick = () => {
                     const action = item.dataset.action;
-                    if (action === 'close' && tg) {
-                        tg.close();
-                    } else if (tg) {
-                        tg.showAlert(`Раздел "${item.querySelector('h4')?.innerText}" будет доступен в следующем обновлении`);
-                    }
+                    if (action === 'referral') showReferralModal();
+                    else if (action === 'security') showSecurityModal();
+                    else if (action === 'support') showSupportModal();
+                    else if (action === 'close' && tg) tg.close();
                 };
             });
         }
 
-        // Навигация
+        function showHistoryModal() {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h3><i class="fas fa-history"></i> Все транзакции</h3>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    ${userData.transactions.map(tx => `
+                        <div style="display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border);">
+                            <div><strong>${tx.title}</strong><br><small>${tx.date}</small></div>
+                            <div style="color: ${tx.amount > 0 ? '#00d47e' : '#ff4757'}">${tx.amount > 0 ? '+' : ''}${tx.amount.toFixed(2)} ${tx.coin}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="modal-buttons" style="margin-top: 16px;">
+                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        // ========== НАВИГАЦИЯ ==========
         document.querySelectorAll('.nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
-                const tab = btn.getAttribute('data-tab');
-                currentTab = tab;
-                renderTab(tab);
+                currentTab = btn.getAttribute('data-tab');
+                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                if (currentTab === 'wallet') renderWallet();
+                else if (currentTab === 'charts') renderCharts();
+                else if (currentTab === 'swap') renderSwap();
+                else if (currentTab === 'more') renderProfile();
             });
         });
         
-        // Стартовый рендер
-        renderTab('wallet');
-        
-        // Обновление графика при изменении размера
-        let resizeTimer;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => {
-                if (currentTab === 'charts') drawChart();
-            }, 100);
-        });
+        renderWallet();
     </script>
 </body>
 </html>
