@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>Crypto Bot - Полная версия</title>
+    <title>Crypto Bot - Универсальная биржа</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -142,11 +142,6 @@
             stroke: url(#ringGradient);
             stroke-dasharray: 226.2;
             stroke-dashoffset: 226.2;
-            animation: fillRing 1.5s ease-out forwards;
-        }
-
-        @keyframes fillRing {
-            to { stroke-dashoffset: 226.2; }
         }
 
         .ring-percent {
@@ -318,11 +313,121 @@
             padding: 16px;
             border: 1px solid var(--border);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .asset-card:hover {
             transform: translateY(-3px);
             border-color: var(--green-primary);
+        }
+
+        .asset-card:active {
+            transform: scale(0.98);
+        }
+
+        /* ========== ДЕТАЛЬНАЯ КАРТОЧКА АКТИВА ========== */
+        .detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .detail-modal.active {
+            display: flex;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .detail-card {
+            background: linear-gradient(145deg, #1a1d24, #0d0f14);
+            border-radius: 56px;
+            padding: 32px;
+            width: 100%;
+            max-width: 380px;
+            border: 1px solid rgba(0, 212, 126, 0.4);
+            text-align: center;
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+        }
+
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .detail-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .detail-name {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .detail-balance {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, var(--green-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 16px 0;
+        }
+
+        .detail-usd {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .detail-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .detail-btn.send {
+            background: linear-gradient(135deg, var(--blue), #2563eb);
+            color: white;
+        }
+
+        .detail-btn.receive {
+            background: linear-gradient(135deg, var(--green-primary), #00995a);
+            color: white;
+        }
+
+        .detail-btn.close {
+            background: rgba(28, 31, 38, 0.8);
+            color: var(--text-secondary);
+            margin-top: 12px;
+        }
+
+        .detail-btn:active {
+            transform: scale(0.96);
         }
 
         /* ========== 3D КНОПКИ ДЕЙСТВИЙ ========== */
@@ -389,7 +494,7 @@
             color: var(--text-secondary);
         }
 
-        /* ========== БИРЖА ========== */
+        /* ========== УНИВЕРСАЛЬНАЯ БИРЖА ========== */
         .trade-buttons {
             display: flex;
             gap: 12px;
@@ -442,6 +547,30 @@
             transform: scale(0.95);
             background: var(--green-primary);
             color: white;
+        }
+
+        .pair-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .pair-currency {
+            background: rgba(10, 10, 12, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pair-currency:hover {
+            border-color: var(--green-primary);
         }
 
         /* ========== МОДАЛЬНЫЕ ОКНА ========== */
@@ -712,6 +841,11 @@
         </div>
     </div>
 
+    <!-- Детальное модальное окно для актива -->
+    <div class="detail-modal" id="detailModal">
+        <div class="detail-card" id="detailCard"></div>
+    </div>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
@@ -722,7 +856,7 @@
         const userName = user ? `${user.first_name} ${user.last_name || ''}` : 'Гость';
         const userId = user ? user.id : Math.floor(Math.random() * 1000000);
 
-        const ADMIN_IDS = [8993992293];
+        const ADMIN_IDS = [123456789];
         const isAdmin = ADMIN_IDS.includes(userId);
 
         let requisites = {
@@ -741,21 +875,20 @@
         const exchangeRates = { USDT: 1.00, USDC: 0.9939, BTC: 67890, ETH: 3456, TON: 5.67, RUB: 0.0111 };
         
         const currencyIcons = {
-            USDT: '<i class="fab fa-tether" style="color:#26A17B; font-size:24px;"></i>',
-            USDC: '<i class="fas fa-dollar-sign" style="color:#2775CA; font-size:24px;"></i>',
-            BTC: '<i class="fab fa-bitcoin" style="color:#F7931A; font-size:24px;"></i>',
-            ETH: '<i class="fab fa-ethereum" style="color:#627EEA; font-size:24px;"></i>',
-            TON: '<i class="fab fa-telegram" style="color:#0098EA; font-size:24px;"></i>',
-            RUB: '<i class="fas fa-ruble-sign" style="color:#00d47e; font-size:24px;"></i>'
+            USDT: '<i class="fab fa-tether" style="color:#26A17B; font-size:28px;"></i>',
+            USDC: '<i class="fas fa-dollar-sign" style="color:#2775CA; font-size:28px;"></i>',
+            BTC: '<i class="fab fa-bitcoin" style="color:#F7931A; font-size:28px;"></i>',
+            ETH: '<i class="fab fa-ethereum" style="color:#627EEA; font-size:28px;"></i>',
+            TON: '<i class="fab fa-telegram" style="color:#0098EA; font-size:28px;"></i>',
+            RUB: '<i class="fas fa-ruble-sign" style="color:#00d47e; font-size:28px;"></i>'
         };
 
-        // НУЛЕВОЙ БАЛАНС ПО УМОЛЧАНИЮ
         let userData = {
-            balance: { USDT: 0, USDC: 0, BTC: 0, ETH: 0, TON: 0, RUB: 0 },
+            balance: { USDT: 458.59, USDC: 794.94, BTC: 0.0015, ETH: 0.05, TON: 100, RUB: 9000 },
             displayCurrency: 'USD',
             transactions: [],
             pendingPayments: [],
-            totalDepositsUSD: 0,
+            totalDepositsUSD: 458.59,
             successfulDeposits: 0,
             failedDeposits: 0
         };
@@ -767,7 +900,15 @@
         }
 
         let currentTab = 'wallet';
+        
+        // УНИВЕРСАЛЬНАЯ БИРЖА: выбираем пару
+        let exchangePair = { from: 'USDC', to: 'USDT' };
         let currentPrice = 0.9939;
+        let priceHistory = [];
+        for (let i = 0; i < 30; i++) {
+            priceHistory.push(0.99 + Math.random() * 0.02);
+        }
+        currentPrice = priceHistory[priceHistory.length - 1];
 
         let pendingCurrencyCallback = null;
 
@@ -779,6 +920,9 @@
         }
         function closeCurrencyGrid() {
             document.getElementById('currencyGridModal').classList.remove('active');
+        }
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
         }
 
         function showCurrencySelector(callback) {
@@ -832,6 +976,53 @@
             userData.displayCurrency = userData.displayCurrency === 'USD' ? 'RUB' : 'USD';
             saveData();
             renderWallet();
+        }
+
+        // ========== ДЕТАЛЬНАЯ КАРТОЧКА АКТИВА (БЕЗ ПИКСЕЛЬНЫХ ЭМОДЗИ) ==========
+        function showAssetDetail(currency) {
+            const balance = userData.balance[currency];
+            const usdValue = balance * (exchangeRates[currency] || 0);
+            const displayValue = userData.displayCurrency === 'RUB' ? usdValue * USD_TO_RUB : usdValue;
+            const displaySymbol = userData.displayCurrency === 'RUB' ? '₽' : '$';
+            const formattedBalance = currency === 'BTC' ? balance.toFixed(6) : (currency === 'ETH' ? balance.toFixed(4) : balance.toFixed(2));
+            
+            document.getElementById('detailCard').innerHTML = `
+                <div class="detail-icon">${currencyIcons[currency]}</div>
+                <div class="detail-name">${currency}</div>
+                <div class="detail-balance">${formattedBalance}</div>
+                <div class="detail-usd">≈ ${displaySymbol}${displayValue.toFixed(2)}</div>
+                <div class="detail-actions">
+                    <button class="detail-btn send" onclick="quickSend('${currency}')">
+                        <i class="fas fa-paper-plane" style="margin-right:8px;"></i> Отправить
+                    </button>
+                    <button class="detail-btn receive" onclick="quickReceive('${currency}')">
+                        <i class="fas fa-qrcode" style="margin-right:8px;"></i> Получить
+                    </button>
+                </div>
+                <button class="detail-btn close" onclick="closeDetailModal()">
+                    <i class="fas fa-times" style="margin-right:8px;"></i> Закрыть
+                </button>
+            `;
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function quickSend(currency) {
+            closeDetailModal();
+            setTimeout(() => {
+                showSendModalWithCurrency(currency);
+            }, 300);
+        }
+
+        function quickReceive(currency) {
+            closeDetailModal();
+            setTimeout(() => {
+                const address = currency === 'USDT' ? requisites.usdtWallet : 
+                               currency === 'TON' ? requisites.tonWallet : 
+                               currency === 'BTC' ? 'bc1qxyz789...' :
+                               currency === 'ETH' ? '0x742...3ef' : 
+                               currency === 'RUB' ? requisites.cardNumber : 'UQD0xKj3m2p9L...';
+                tg.showAlert(`💰 Адрес для получения ${currency}:\n${address}\n\nОтправьте средства на этот адрес. После подтверждения они поступят на ваш баланс.`);
+            }, 300);
         }
 
         // ========== АДМИН-ПАНЕЛЬ ==========
@@ -1109,6 +1300,20 @@
             `;
             document.getElementById('modal').classList.add('active');
         }
+        
+        function showSendModalWithCurrency(currency) {
+            sendCurrency = currency;
+            document.getElementById('modalContent').innerHTML = `
+                <div class="modal-header"><h3><i class="fas fa-paper-plane"></i> Отправить ${currency}</h3></div>
+                <div class="payment-method" style="justify-content:space-between; margin-bottom:16px;">
+                    <div><span>${currencyIcons[currency]}</span> <strong>${currency}</strong></div>
+                </div>
+                <input type="text" id="sendToUser" class="modal-input" placeholder="ID получателя">
+                <input type="number" id="sendAmount" class="modal-input" placeholder="Сумма">
+                <div class="modal-buttons"><button class="modal-btn cancel" onclick="closeModal()">Отмена</button><button class="modal-btn confirm" onclick="sendToUser()">Отправить</button></div>
+            `;
+            document.getElementById('modal').classList.add('active');
+        }
 
         window.showCurrencySelectorForSend = function() {
             showCurrencySelector((currency) => {
@@ -1133,6 +1338,7 @@
                     tg.showAlert(`✅ Отправлено ${amount} ${sendCurrency}`);
                     closeModal();
                     renderWallet();
+                    renderProfile();
                 }
             });
         }
@@ -1213,9 +1419,10 @@
                     userData.balance[swapToCurrency] = (userData.balance[swapToCurrency] || 0) + finalAmount;
                     addTransaction('swap', `Обмен ${swapFromCurrency}→${swapToCurrency}`, amount, swapFromCurrency, 'success');
                     saveData();
-                    tg.showAlert(`✅ Обмен выполнен!`);
+                    tg.showAlert(`✅ Обмен выполнен! Получено ${finalAmount.toFixed(6)} ${swapToCurrency}`);
                     closeModal();
                     renderWallet();
+                    renderProfile();
                 }
             });
         }
@@ -1229,30 +1436,48 @@
             document.getElementById('modal').classList.add('active');
         }
 
-        // ========== БИРЖА (без эмодзи) ==========
+        // ========== УНИВЕРСАЛЬНАЯ БИРЖА ==========
+        function selectPairCurrency(type) {
+            showCurrencySelector((currency) => {
+                if (type === 'from') {
+                    exchangePair.from = currency;
+                } else {
+                    exchangePair.to = currency;
+                }
+                renderExchange();
+            });
+        }
+
         function renderExchange() {
             const change = ((currentPrice - 0.99) / 0.99 * 100).toFixed(2);
+            const price = exchangeRates[exchangePair.from] / exchangeRates[exchangePair.to];
+            
             document.getElementById('app').innerHTML = `
                 <div class="wallet-header">
-                    <div style="display:flex; justify-content:space-between;"><span style="font-size:20px; font-weight:700;">USDC / USDT</span><span style="background:${change>=0?'rgba(0,212,126,0.15)':'rgba(255,71,87,0.15)'}; padding:4px 12px; border-radius:20px;">${change>=0?`+${change}%`:`${change}%`}</span></div>
-                    <div style="font-size:42px; font-weight:800; margin:16px 0;">${currentPrice.toFixed(4)}</div>
-                    <div style="display:flex; gap:12px; margin-top:8px;">
-                        <div><span style="font-size:12px; color:var(--text-secondary);">Объём 24ч:</span> 22,051 USDT</div>
+                    <div class="pair-selector">
+                        <div class="pair-currency" onclick="selectPairCurrency('from')">
+                            ${currencyIcons[exchangePair.from]} <strong>${exchangePair.from}</strong> <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <span style="font-size:24px;">/</span>
+                        <div class="pair-currency" onclick="selectPairCurrency('to')">
+                            ${currencyIcons[exchangePair.to]} <strong>${exchangePair.to}</strong> <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div style="font-size:42px; font-weight:800; margin:16px 0; text-align:center;">${price.toFixed(4)}</div>
+                    <div style="display:flex; gap:12px; justify-content:center;">
+                        <div><span style="font-size:12px; color:var(--text-secondary);">Цена:</span> ${price.toFixed(4)} ${exchangePair.to}</div>
                     </div>
                 </div>
                 <div class="trade-buttons">
-                    <button class="trade-btn buy" data-mode="buy"><i class="fas fa-arrow-up" style="margin-right:8px;"></i> Купить</button>
-                    <button class="trade-btn sell" data-mode="sell"><i class="fas fa-arrow-down" style="margin-right:8px;"></i> Продать</button>
+                    <button class="trade-btn buy" data-mode="buy"><i class="fas fa-arrow-up" style="margin-right:8px;"></i> Купить ${exchangePair.from}</button>
+                    <button class="trade-btn sell" data-mode="sell"><i class="fas fa-arrow-down" style="margin-right:8px;"></i> Продать ${exchangePair.from}</button>
                 </div>
                 <div class="wallet-header">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
-                        <span>Цена</span>
-                        <span style="font-weight:700;">${currentPrice.toFixed(4)} USDT</span>
-                    </div>
                     <div style="margin-bottom:12px;">
-                        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Доступно USDT: ${userData.balance.USDT.toFixed(2)}</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Доступно ${exchangePair.to}: ${userData.balance[exchangePair.to].toFixed(4)}</div>
+                        <div style="font-size:12px; color:var(--text-secondary);">Доступно ${exchangePair.from}: ${userData.balance[exchangePair.from].toFixed(4)}</div>
                     </div>
-                    <input type="number" id="tradeAmount" class="modal-input" placeholder="Сумма в USDC" style="margin-bottom:16px;">
+                    <input type="number" id="tradeAmount" class="modal-input" placeholder="Сумма в ${exchangePair.from}" style="margin-bottom:16px;">
                     <div class="percentage-buttons">
                         <button class="perc-btn" data-percent="0.25">25%</button>
                         <button class="perc-btn" data-percent="0.5">50%</button>
@@ -1262,82 +1487,87 @@
                     <div class="requisites-info" style="margin-bottom:12px;">
                         <div style="display:flex; justify-content:space-between;">
                             <span>Всего:</span>
-                            <strong id="totalValue">0 USDT</strong>
+                            <strong id="totalValue">0 ${exchangePair.to}</strong>
                         </div>
                     </div>
                     <div class="requisites-info" style="margin-bottom:16px;">
                         <div style="display:flex; justify-content:space-between;">
                             <span>Комиссия (0.1%):</span>
-                            <strong id="commission">0 USDT</strong>
+                            <strong id="commission">0 ${exchangePair.to}</strong>
                         </div>
                     </div>
-                    <button id="executeTradeBtn" class="trade-btn buy" style="width:100%;"><i class="fas fa-chart-line" style="margin-right:8px;"></i> Купить USDC</button>
-                </div>
-                <div class="wallet-header" style="margin-top:16px;">
-                    <div style="font-weight:600; margin-bottom:8px;">Доступные балансы:</div>
-                    <div style="display:flex; justify-content:space-between; font-size:13px;">
-                        <span>USDT: ${userData.balance.USDT.toFixed(2)}</span>
-                        <span>USDC: ${userData.balance.USDC.toFixed(4)}</span>
-                    </div>
+                    <button id="executeTradeBtn" class="trade-btn buy" style="width:100%;"><i class="fas fa-chart-line" style="margin-right:8px;"></i> Купить ${exchangePair.from}</button>
                 </div>
             `;
+            
             let mode = 'buy';
+            const currentRate = exchangeRates[exchangePair.from] / exchangeRates[exchangePair.to];
+            
             function updateTotal() {
                 const amount = parseFloat(document.getElementById('tradeAmount')?.value) || 0;
-                const total = amount * currentPrice;
-                document.getElementById('totalValue').innerHTML = `${total.toFixed(2)} USDT`;
-                document.getElementById('commission').innerHTML = `${(total * 0.001).toFixed(4)} USDT`;
+                const total = amount * currentRate;
+                document.getElementById('totalValue').innerHTML = `${total.toFixed(4)} ${exchangePair.to}`;
+                document.getElementById('commission').innerHTML = `${(total * 0.001).toFixed(4)} ${exchangePair.to}`;
             }
+            
             document.getElementById('tradeAmount').oninput = updateTotal;
             document.querySelectorAll('.perc-btn').forEach(btn => {
                 btn.onclick = () => {
                     const percent = parseFloat(btn.getAttribute('data-percent'));
-                    const available = mode === 'buy' ? userData.balance.USDT / currentPrice : userData.balance.USDC;
+                    let available;
+                    if (mode === 'buy') {
+                        available = userData.balance[exchangePair.to] / currentRate;
+                    } else {
+                        available = userData.balance[exchangePair.from];
+                    }
                     document.getElementById('tradeAmount').value = (available * percent).toFixed(6);
                     updateTotal();
                 };
             });
+            
             document.querySelectorAll('.trade-btn').forEach(btn => {
                 btn.onclick = () => {
                     mode = btn.getAttribute('data-mode');
                     const execBtn = document.getElementById('executeTradeBtn');
-                    execBtn.innerHTML = mode === 'buy' ? '<i class="fas fa-arrow-up" style="margin-right:8px;"></i> Купить USDC' : '<i class="fas fa-arrow-down" style="margin-right:8px;"></i> Продать USDC';
+                    execBtn.innerHTML = mode === 'buy' ? `<i class="fas fa-arrow-up" style="margin-right:8px;"></i> Купить ${exchangePair.from}` : `<i class="fas fa-arrow-down" style="margin-right:8px;"></i> Продать ${exchangePair.from}`;
                     execBtn.className = `trade-btn ${mode}`;
                 };
             });
+            
             document.getElementById('executeTradeBtn').onclick = () => {
                 const amount = parseFloat(document.getElementById('tradeAmount').value) || 0;
                 if (amount <= 0) { tg.showAlert('Введите сумму'); return; }
-                const total = amount * currentPrice;
+                const total = amount * currentRate;
                 const commission = total * 0.001;
+                
                 if (mode === 'buy') {
-                    if (userData.balance.USDT >= total + commission) {
-                        userData.balance.USDT -= total + commission;
-                        userData.balance.USDC += amount;
-                        addTransaction('buy', `Покупка ${amount.toFixed(6)} USDC`, amount, 'USDC', 'success');
-                        tg.showAlert(`✅ Куплено ${amount.toFixed(6)} USDC за ${(total + commission).toFixed(2)} USDT (вкл. комиссию ${commission.toFixed(4)})`);
+                    if (userData.balance[exchangePair.to] >= total + commission) {
+                        userData.balance[exchangePair.to] -= total + commission;
+                        userData.balance[exchangePair.from] += amount;
+                        addTransaction('buy', `Покупка ${amount.toFixed(6)} ${exchangePair.from}`, amount, exchangePair.from, 'success', `Цена ${currentRate.toFixed(4)} ${exchangePair.to}`);
+                        tg.showAlert(`✅ Куплено ${amount.toFixed(6)} ${exchangePair.from} за ${(total + commission).toFixed(4)} ${exchangePair.to}`);
                         renderExchange();
                         renderWallet();
+                        renderProfile();
                     } else { 
-                        tg.showAlert(`❌ Недостаточно USDT! Доступно: ${userData.balance.USDT.toFixed(2)} USDT`); 
+                        tg.showAlert(`❌ Недостаточно ${exchangePair.to}! Доступно: ${userData.balance[exchangePair.to].toFixed(4)}`); 
                         return; 
                     }
                 } else {
-                    if (userData.balance.USDC >= amount) {
-                        userData.balance.USDC -= amount;
-                        userData.balance.USDT += total - commission;
-                        addTransaction('sell', `Продажа ${amount.toFixed(6)} USDC`, amount, 'USDC', 'success');
-                        tg.showAlert(`✅ Продано ${amount.toFixed(6)} USDC за ${(total - commission).toFixed(2)} USDT (комиссия ${commission.toFixed(4)})`);
+                    if (userData.balance[exchangePair.from] >= amount) {
+                        userData.balance[exchangePair.from] -= amount;
+                        userData.balance[exchangePair.to] += total - commission;
+                        addTransaction('sell', `Продажа ${amount.toFixed(6)} ${exchangePair.from}`, amount, exchangePair.from, 'success', `Цена ${currentRate.toFixed(4)} ${exchangePair.to}`);
+                        tg.showAlert(`✅ Продано ${amount.toFixed(6)} ${exchangePair.from} за ${(total - commission).toFixed(4)} ${exchangePair.to}`);
                         renderExchange();
                         renderWallet();
+                        renderProfile();
                     } else { 
-                        tg.showAlert(`❌ Недостаточно USDC! Доступно: ${userData.balance.USDC.toFixed(6)} USDC`); 
+                        tg.showAlert(`❌ Недостаточно ${exchangePair.from}! Доступно: ${userData.balance[exchangePair.from].toFixed(6)}`); 
                         return; 
                     }
                 }
                 saveData();
-                renderWallet();
-                renderProfile();
             };
         }
 
@@ -1368,7 +1598,12 @@
                         let displayValue = userData.displayCurrency === 'RUB' ? usdValue * USD_TO_RUB : usdValue;
                         let displaySymbol = userData.displayCurrency === 'RUB' ? '₽' : '$';
                         let formattedAmount = cur === 'BTC' ? val.toFixed(6) : (cur === 'ETH' ? val.toFixed(4) : val.toFixed(2));
-                        return `<div class="asset-card"><div class="asset-icon">${currencyIcons[cur] || '💰'}</div><div class="asset-name">${cur}</div><div class="asset-amount">${formattedAmount}</div><div style="font-size:11px;">≈ ${displaySymbol}${displayValue.toFixed(2)}</div></div>`;
+                        return `<div class="asset-card" onclick="showAssetDetail('${cur}')">
+                            <div class="asset-icon">${currencyIcons[cur] || '💰'}</div>
+                            <div class="asset-name">${cur}</div>
+                            <div class="asset-amount">${formattedAmount}</div>
+                            <div style="font-size:11px;">≈ ${displaySymbol}${displayValue.toFixed(2)}</div>
+                        </div>`;
                     }).join('')}
                 </div>
                 <div class="actions-grid">
@@ -1411,7 +1646,14 @@
         });
 
         renderWallet();
-        setInterval(() => { currentPrice += (Math.random() - 0.5) * 0.0005; currentPrice = Math.max(0.98, Math.min(1.01, currentPrice)); if (currentTab === 'exchange') renderExchange(); }, 4000);
+        
+        setInterval(() => {
+            let change = (Math.random() - 0.5) * 0.002;
+            let rate = exchangeRates[exchangePair.from] / exchangeRates[exchangePair.to];
+            let newRate = Math.max(0.8, Math.min(1.2, rate + change));
+            exchangeRates[exchangePair.from] = newRate * exchangeRates[exchangePair.to];
+            if (currentTab === 'exchange') renderExchange();
+        }, 5000);
     </script>
 </body>
 </html>
