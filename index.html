@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>Crypto Bot - Платежная система</title>
+    <title>Crypto Bot - Анимированный интерфейс</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -22,10 +22,14 @@
             --green-primary: #00d47e;
             --blue: #3b82f6;
             --red: #ff4757;
-            --rub: #0057b8;
+            --orange: #ff9800;
+            --purple: #9c27b0;
             --text-primary: #ffffff;
             --text-secondary: #8e8e93;
             --border: #1c1f26;
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-medium: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
@@ -33,19 +37,110 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--text-primary);
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Анимированный градиентный фон */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 212, 126, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: -1;
+            animation: gradientShift 10s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
 
         .content {
             padding: 20px;
             padding-bottom: 85px;
-            animation: fadeInUp 0.3s ease-out;
+            animation: fadeInUp 0.4s ease-out;
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(0); opacity: 0.5; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+
+        /* Анимированная карточка баланса */
         .balance-card {
             background: linear-gradient(135deg, var(--bg-card) 0%, #0d0f14 100%);
             border-radius: 32px;
@@ -54,9 +149,32 @@
             border: 1px solid var(--border);
             position: relative;
             overflow: hidden;
+            transition: all var(--transition-medium);
+            animation: fadeInScale 0.5s ease-out;
+        }
+
+        .balance-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--green-primary);
+            box-shadow: 0 10px 30px rgba(0, 212, 126, 0.15);
         }
 
         .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 126, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .balance-card:hover::before {
+            left: 100%;
+        }
+
+        .balance-card::after {
             content: '';
             position: absolute;
             top: 0;
@@ -64,11 +182,14 @@
             right: 0;
             height: 3px;
             background: linear-gradient(90deg, var(--green-primary), var(--blue), var(--green-primary));
+            animation: shimmer 3s infinite;
+            background-size: 200% 100%;
         }
 
         .balance-label {
             font-size: 14px;
             color: var(--text-secondary);
+            animation: slideInLeft 0.4s ease-out;
         }
 
         .balance-amount {
@@ -79,20 +200,10 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            animation: fadeInScale 0.5s ease-out 0.1s both;
         }
 
-        .currency-selector {
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            border-radius: 30px;
-            padding: 8px 16px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            margin-top: 12px;
-        }
-
+        /* Анимированные кнопки действий */
         .actions-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -107,23 +218,40 @@
             padding: 14px 8px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInScale 0.4s ease-out backwards;
+        }
+
+        .action-btn:nth-child(1) { animation-delay: 0.05s; }
+        .action-btn:nth-child(2) { animation-delay: 0.1s; }
+        .action-btn:nth-child(3) { animation-delay: 0.15s; }
+        .action-btn:nth-child(4) { animation-delay: 0.2s; }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            border-color: var(--green-primary);
+            box-shadow: 0 5px 20px rgba(0, 212, 126, 0.2);
         }
 
         .action-btn:active {
-            transform: scale(0.95);
+            transform: translateY(0) scale(0.96);
         }
 
-        .action-icon {
+        .action-btn .action-icon {
             font-size: 24px;
             margin-bottom: 6px;
+            display: inline-block;
+            transition: all var(--transition-fast);
         }
 
-        .action-label {
-            font-size: 12px;
-            color: var(--text-secondary);
+        .action-btn:hover .action-icon {
+            transform: scale(1.1) translateY(-2px);
+            animation: bounce 0.5s ease;
         }
 
+        /* Анимированные стат-карточки */
         .stats-row {
             display: flex;
             gap: 12px;
@@ -138,26 +266,50 @@
             padding: 16px;
             border: 1px solid var(--border);
             min-width: 100px;
+            transition: all var(--transition-fast);
+            animation: slideInRight 0.4s ease-out backwards;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.15s; }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--green-primary);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--green-primary), transparent);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover::after {
+            transform: scaleX(1);
         }
 
         .stat-value {
             font-size: 20px;
             font-weight: 700;
             margin-top: 8px;
+            transition: all var(--transition-fast);
         }
 
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 16px;
+        .stat-card:hover .stat-value {
+            transform: scale(1.05);
+            color: var(--green-primary);
         }
 
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
+        /* Анимированные транзакции */
         .transactions-list {
             display: flex;
             flex-direction: column;
@@ -173,12 +325,20 @@
             align-items: center;
             border: 1px solid var(--border);
             cursor: pointer;
+            transition: all var(--transition-fast);
+            animation: slideInLeft 0.4s ease-out backwards;
+            position: relative;
+            overflow: hidden;
         }
 
-        .transaction-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .transaction-item:hover {
+            transform: translateX(5px);
+            border-color: var(--green-primary);
+            background: rgba(0, 212, 126, 0.05);
+        }
+
+        .transaction-item:active {
+            transform: scale(0.98);
         }
 
         .transaction-icon {
@@ -190,35 +350,19 @@
             align-items: center;
             justify-content: center;
             font-size: 20px;
+            transition: all var(--transition-fast);
         }
 
-        .transaction-info h4 {
-            font-size: 15px;
-            margin-bottom: 4px;
+        .transaction-item:hover .transaction-icon {
+            transform: scale(1.1) rotate(5deg);
+            background: linear-gradient(135deg, var(--green-primary), var(--blue));
         }
 
-        .transaction-info p {
-            font-size: 12px;
-            color: var(--text-secondary);
+        .transaction-item:hover .transaction-icon i {
+            animation: bounce 0.5s ease;
         }
 
-        .transaction-amount {
-            text-align: right;
-        }
-
-        .transaction-amount .amount.positive {
-            color: var(--green-primary);
-        }
-
-        .transaction-amount .amount.negative {
-            color: var(--red);
-        }
-
-        .transaction-date {
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-
+        /* Анимированная нижняя панель */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -232,6 +376,7 @@
             padding: 8px 16px calc(12px + env(safe-area-inset-bottom, 0px));
             border-top: 1px solid var(--border);
             z-index: 1000;
+            animation: fadeInUp 0.5s ease-out;
         }
 
         .nav-item {
@@ -242,25 +387,102 @@
             cursor: pointer;
             color: var(--text-secondary);
             font-size: 10px;
-            transition: all 0.2s ease;
+            transition: all var(--transition-fast);
             padding: 8px 16px;
             border-radius: 30px;
             background: transparent;
             border: none;
+            position: relative;
+            overflow: hidden;
         }
 
         .nav-item i {
             font-size: 22px;
+            transition: all var(--transition-fast);
+        }
+
+        .nav-item span {
+            transition: all var(--transition-fast);
+        }
+
+        .nav-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-item:hover i {
+            transform: translateY(-3px) scale(1.1);
+            animation: bounce 0.6s ease;
         }
 
         .nav-item.active {
             color: var(--green-primary);
         }
 
-        .nav-item:active {
-            transform: scale(0.95);
+        .nav-item.active i {
+            transform: translateY(-2px);
+            text-shadow: 0 0 10px rgba(0, 212, 126, 0.5);
         }
 
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: var(--green-primary);
+            border-radius: 2px;
+            animation: slideInLeft 0.3s ease;
+        }
+
+        .nav-item:active {
+            transform: scale(0.92);
+        }
+
+        /* Админ-панель анимация */
+        .admin-btn {
+            background: linear-gradient(135deg, var(--orange), #ff5722);
+            border: none;
+            border-radius: 20px;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 87, 34, 0.4);
+        }
+
+        .admin-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .admin-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .admin-btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Модальное окно анимация */
         .modal {
             display: none;
             position: fixed;
@@ -275,6 +497,7 @@
             justify-content: center;
             padding: 20px;
             overflow-y: auto;
+            animation: fadeInUp 0.3s ease;
         }
 
         .modal.active {
@@ -290,48 +513,41 @@
             border: 1px solid var(--border);
             max-height: 90vh;
             overflow-y: auto;
+            animation: fadeInScale 0.3s ease;
         }
 
-        .modal-content h3 {
-            margin-bottom: 20px;
-        }
-
-        .modal-input {
-            width: 100%;
-            padding: 14px;
+        /* Анимированный селектор валюты */
+        .currency-selector {
             background: var(--bg-dark);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            color: white;
-            font-size: 16px;
-            margin-bottom: 16px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .modal-btn {
-            flex: 1;
-            padding: 14px;
-            border-radius: 16px;
-            border: none;
-            font-weight: 600;
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             cursor: pointer;
+            margin-top: 12px;
+            transition: all var(--transition-fast);
         }
 
-        .modal-btn.confirm {
-            background: var(--green-primary);
-            color: white;
+        .currency-selector:hover {
+            border-color: var(--green-primary);
+            transform: scale(1.02);
         }
 
-        .modal-btn.cancel {
-            background: var(--border);
-            color: var(--text-secondary);
+        .currency-selector:active {
+            transform: scale(0.98);
         }
 
+        .currency-selector i:last-child {
+            transition: transform var(--transition-fast);
+        }
+
+        .currency-selector:hover i:last-child {
+            transform: rotate(180deg);
+        }
+
+        /* Анимированные элементы в модалке */
         .payment-method {
             background: var(--bg-dark);
             border: 1px solid var(--border);
@@ -342,68 +558,152 @@
             align-items: center;
             gap: 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all var(--transition-fast);
+            animation: slideInLeft 0.3s ease backwards;
         }
 
-        .payment-method:hover, .payment-method.selected {
+        .payment-method:hover {
+            transform: translateX(5px);
             border-color: var(--green-primary);
             background: rgba(0, 212, 126, 0.1);
+        }
+
+        .payment-method.selected {
+            border-color: var(--green-primary);
+            background: rgba(0, 212, 126, 0.15);
+            transform: scale(1.01);
         }
 
         .payment-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #1a1d24, var(--bg-dark));
+            transition: all var(--transition-fast);
+        }
+
+        .payment-method:hover .payment-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        /* Анимированные кнопки в модалке */
+        .modal-btn {
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .modal-btn:active {
+            transform: translateY(0) scale(0.96);
+        }
+
+        /* Анимация загрузки */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--green-primary);
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
+            animation: rotate 0.6s linear infinite;
         }
 
-        .currency-list {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 16px;
-        }
-
-        .currency-item {
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .currency-item.selected {
-            border-color: var(--green-primary);
-            background: rgba(0, 212, 126, 0.1);
-        }
-
-        .currency-symbol {
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-
-        .address-text {
-            background: var(--bg-dark);
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            word-break: break-all;
-            margin-top: 12px;
-        }
-
+        /* Анимация для графика */
         canvas {
             width: 100%;
             height: 120px;
+            transition: all var(--transition-medium);
         }
 
-        .rub-badge {
-            background: linear-gradient(135deg, #0057b8, #ffd700);
+        canvas:hover {
+            transform: scale(1.01);
+        }
+
+        /* Анимация для статус-бейджей */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            transition: all var(--transition-fast);
+            animation: fadeInScale 0.3s ease;
+        }
+
+        .status-pending { background: var(--orange); color: #000; animation: pulse 1.5s infinite; }
+        .status-approved { background: var(--green-primary); color: #000; }
+        .status-rejected { background: var(--red); color: #fff; }
+
+        /* Анимация для скриншотов */
+        .screenshot-preview img {
+            transition: all var(--transition-fast);
+        }
+
+        .screenshot-preview img:hover {
+            transform: scale(1.02);
+        }
+
+        /* Анимация для заголовков */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 16px;
+            animation: slideInRight 0.4s ease-out;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--green-primary);
+            transition: width 0.3s ease;
+        }
+
+        .section-title:hover::after {
+            width: 100%;
+        }
+
+        /* Анимация для поля ввода */
+        .modal-input, .modal-textarea {
+            transition: all var(--transition-fast);
+        }
+
+        .modal-input:focus, .modal-textarea:focus {
+            outline: none;
+            border-color: var(--green-primary);
+            transform: scale(1.01);
+            box-shadow: 0 0 10px rgba(0, 212, 126, 0.2);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            .balance-amount { font-size: 36px; }
+            .action-btn { padding: 10px 6px; }
+            .nav-item { padding: 6px 12px; }
+        }
+
+        /* Скрытие скроллбара но сохранение функционала */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--green-primary);
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -432,106 +732,64 @@
         const user = tg.initDataUnsafe?.user;
         const userName = user ? `${user.first_name} ${user.last_name || ''}` : 'Гость';
         const userId = user ? user.id : Math.floor(Math.random() * 1000000);
-
-        // ========== КУРСЫ ВАЛЮТ ==========
-        // 1 USD = 90 RUB (для конвертации)
+        
+        // Администраторы
+        const ADMIN_IDS = [8993992293];
+        const isAdmin = ADMIN_IDS.includes(userId) || localStorage.getItem('isAdminMode') === 'true';
+        
+        // Настройки админа
+        let adminSettings = {
+            cardNumber: '5536 9138 1234 5678',
+            cardHolder: 'IVAN IVANOV',
+            sbpBank: 'Т-Банк',
+            sbpPhone: '+7 999 123-45-67',
+            tonWallet: 'UQD0xKj3...',
+            btcWallet: 'bc1qxyz...',
+            usdtWallet: 'TXYZ...',
+            yoomoneyWallet: '410011234567890'
+        };
+        
+        const savedSettings = localStorage.getItem('adminSettings');
+        if (savedSettings) adminSettings = JSON.parse(savedSettings);
+        
+        // Курсы валют
         const USD_TO_RUB = 90;
+        const exchangeRates = { TON: 5.67, BTC: 67890, ETH: 3456, USDT: 1.00, BNB: 580, SOL: 140, TRX: 0.11, LTC: 82, DOGE: 0.12, XRP: 0.62, RUB: 1.00 };
         
-        const exchangeRates = {
-            TON: 5.67,      // USD
-            BTC: 67890,     // USD
-            ETH: 3456,      // USD
-            USDT: 1.00,     // USD
-            BNB: 580,       // USD
-            SOL: 140,       // USD
-            TRX: 0.11,      // USD
-            LTC: 82,        // USD
-            DOGE: 0.12,     // USD
-            XRP: 0.62,      // USD
-            RUB: 1.00       // RUB (базовая)
-        };
-        
-        // Курсы в RUB для отображения
-        const ratesInRUB = {
-            TON: 5.67 * USD_TO_RUB,
-            BTC: 67890 * USD_TO_RUB,
-            ETH: 3456 * USD_TO_RUB,
-            USDT: 1.00 * USD_TO_RUB,
-            BNB: 580 * USD_TO_RUB,
-            SOL: 140 * USD_TO_RUB,
-            TRX: 0.11 * USD_TO_RUB,
-            LTC: 82 * USD_TO_RUB,
-            DOGE: 0.12 * USD_TO_RUB,
-            XRP: 0.62 * USD_TO_RUB,
-            RUB: 1.00
-        };
-
-        // ========== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ==========
+        // Данные пользователя
         let userData = {
-            balance: 1284.50,  // в выбранной валюте
+            balance: 1284.50,
             currency: 'TON',
-            staking: 350,      // в TON (базовая)
-            totalEarned: 42.5, // в TON (базовая)
+            staking: 350,
+            totalEarned: 42.5,
             transactions: [
                 { id: Date.now() - 3600000, type: "send", title: "Отправлено", address: "0x742...3ef", amount: -50.25, date: new Date(Date.now() - 3600000).toLocaleString(), coin: "TON" },
-                { id: Date.now() - 86400000, type: "receive", title: "Получено", address: "Биржа Bybit", amount: 125.00, date: new Date(Date.now() - 86400000).toLocaleString(), coin: "TON" },
-                { id: Date.now() - 172800000, type: "bonus", title: "Бонус", address: "Реферальная программа", amount: 5.00, date: new Date(Date.now() - 172800000).toLocaleString(), coin: "TON" }
+                { id: Date.now() - 86400000, type: "receive", title: "Получено", address: "Биржа Bybit", amount: 125.00, date: new Date(Date.now() - 86400000).toLocaleString(), coin: "TON" }
             ],
+            pendingPayments: [],
             swaps: [],
             referralCode: `CRYPTO${userId}`,
             referrals: 2,
             referralEarned: 12.50
         };
-
+        
+        const savedPending = localStorage.getItem('pendingPayments');
+        if (savedPending) userData.pendingPayments = JSON.parse(savedPending);
+        
         let currentTab = 'wallet';
         let chartData = [42, 38, 45, 52, 48, 55, 60, 58, 62, 68, 65, 70, 75, 72, 78, 82, 80, 85, 88, 92, 95, 90, 88, 85];
-
-        // ========== ФУНКЦИИ КОНВЕРТАЦИИ ==========
-        function getRateInUSD() {
-            if (userData.currency === 'RUB') {
-                return 1 / USD_TO_RUB;
-            }
-            return exchangeRates[userData.currency];
-        }
         
+        // Функции
         function getBalanceInUSD() {
-            if (userData.currency === 'RUB') {
-                return userData.balance / USD_TO_RUB;
-            }
+            if (userData.currency === 'RUB') return userData.balance / USD_TO_RUB;
             return userData.balance * exchangeRates[userData.currency];
         }
         
-        function getBalanceInRUB() {
-            return getBalanceInUSD() * USD_TO_RUB;
-        }
-        
         function formatBalance() {
-            if (userData.currency === 'RUB') {
-                return `${userData.balance.toFixed(2)} ₽`;
-            }
+            if (userData.currency === 'RUB') return `${userData.balance.toFixed(2)} ₽`;
             return `${userData.balance.toFixed(4)} ${userData.currency}`;
         }
         
-        function getCurrencyPrice() {
-            if (userData.currency === 'RUB') {
-                return `1 ₽ = ${(1/USD_TO_RUB).toFixed(4)} USD`;
-            }
-            return `$${exchangeRates[userData.currency]}`;
-        }
-
-        function updateBalanceDisplay() {
-            const balanceEl = document.querySelector('.balance-amount');
-            if (balanceEl) balanceEl.innerHTML = formatBalance();
-            const usdEl = document.querySelector('.balance-usd');
-            if (usdEl) {
-                if (userData.currency === 'RUB') {
-                    usdEl.innerHTML = `≈ $${getBalanceInUSD().toFixed(2)} USD`;
-                } else {
-                    usdEl.innerHTML = `≈ $${getBalanceInUSD().toFixed(2)} USD | ₽${getBalanceInRUB().toFixed(2)}`;
-                }
-            }
-        }
-
         function addTransaction(type, title, address, amount, coin = null) {
             userData.transactions.unshift({
                 id: Date.now(),
@@ -540,656 +798,330 @@
                 address: address,
                 amount: amount,
                 date: new Date().toLocaleString(),
-                coin: coin || userData.currency
+                coin: coin || userData.currency,
+                status: 'completed'
             });
             if (userData.transactions.length > 20) userData.transactions.pop();
+            localStorage.setItem('userData', JSON.stringify(userData));
         }
-
+        
+        function addPendingPayment(amount, method, screenshot) {
+            const pending = {
+                id: Date.now(),
+                userId: userId,
+                userName: userName,
+                amount: amount,
+                method: method,
+                screenshot: screenshot,
+                date: new Date().toLocaleString(),
+                status: 'pending',
+                currency: userData.currency
+            };
+            userData.pendingPayments.unshift(pending);
+            localStorage.setItem('pendingPayments', JSON.stringify(userData.pendingPayments));
+            return pending;
+        }
+        
+        function approvePayment(paymentId) {
+            const payment = userData.pendingPayments.find(p => p.id === paymentId);
+            if (payment && payment.status === 'pending') {
+                payment.status = 'approved';
+                let cryptoAmount;
+                if (payment.currency === 'RUB') cryptoAmount = payment.amount;
+                else cryptoAmount = payment.amount / exchangeRates[payment.currency];
+                userData.balance += cryptoAmount;
+                addTransaction('receive', 'Пополнение', `${payment.method.toUpperCase()} перевод`, cryptoAmount);
+                localStorage.setItem('pendingPayments', JSON.stringify(userData.pendingPayments));
+                localStorage.setItem('userData', JSON.stringify(userData));
+                return true;
+            }
+            return false;
+        }
+        
+        function rejectPayment(paymentId) {
+            const payment = userData.pendingPayments.find(p => p.id === paymentId);
+            if (payment && payment.status === 'pending') {
+                payment.status = 'rejected';
+                localStorage.setItem('pendingPayments', JSON.stringify(userData.pendingPayments));
+                return true;
+            }
+            return false;
+        }
+        
         function closeModal() {
-            document.getElementById('modal').classList.remove('active');
+            const modal = document.getElementById('modal');
+            modal.classList.remove('active');
         }
-
-        // ========== ВЫБОР ВАЛЮТЫ ==========
-        function showCurrencyModal() {
-            const currencies = Object.keys(exchangeRates);
+        
+        // Админ-панель
+        function showAdminPanel() {
+            const pendingCount = userData.pendingPayments.filter(p => p.status === 'pending').length;
             document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-coins"></i> Выберите валюту</h3>
-                <div class="currency-list">
-                    ${currencies.map(curr => `
-                        <div class="currency-item ${userData.currency === curr ? 'selected' : ''}" data-currency="${curr}">
-                            <div class="currency-symbol">${getCurrencyIcon(curr)}</div>
-                            <div>${curr}</div>
-                            <div style="font-size:10px; color:var(--text-secondary);">${curr === 'RUB' ? '₽' + ratesInRUB[curr] : '$' + exchangeRates[curr]}</div>
+                <h3><i class="fas fa-crown"></i> Админ-панель</h3>
+                <div class="admin-header" style="background:linear-gradient(135deg, var(--orange), #ff5722); border-radius:20px; padding:16px; margin-bottom:20px; display:flex; justify-content:space-between;">
+                    <span><i class="fas fa-shield-alt"></i> Добро пожаловать, Админ</span>
+                    <span class="admin-badge" style="background:rgba(255,255,255,0.2); padding:6px 12px; border-radius:20px;">Онлайн</span>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-card" data-section="pending" style="cursor:pointer;"><div>⏳ Ожидают проверки</div><div class="stat-value" style="color:var(--orange);">${pendingCount}</div></div>
+                    <div class="stat-card" data-section="settings" style="cursor:pointer;"><div>⚙️ Настройки</div><div class="stat-value">✏️ Изменить</div></div>
+                </div>
+                <div id="adminSection">
+                    ${pendingCount > 0 ? `
+                        <div class="section-header"><div class="section-title">⏳ Ожидающие платежи</div></div>
+                        <div class="transactions-list">
+                            ${userData.pendingPayments.filter(p => p.status === 'pending').map(p => `
+                                <div class="transaction-item pending-payment" data-payment="${p.id}">
+                                    <div class="transaction-left"><div class="transaction-icon"><i class="fas fa-clock"></i></div>
+                                    <div class="transaction-info"><h4>${p.userName}</h4><p>${p.method} | ${p.amount} ${p.currency === 'RUB' ? '₽' : p.currency}</p><p>${p.date}</p></div></div>
+                                    <div><span class="status-badge status-pending">Ожидает</span></div>
+                                </div>
+                            `).join('')}
                         </div>
-                    `).join('')}
+                    ` : '<div style="text-align:center; padding:20px; color:var(--text-secondary);">Нет ожидающих платежей</div>'}
                 </div>
-                <div class="modal-buttons">
-                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
-                </div>
+                <div class="modal-buttons"><button class="modal-btn cancel" onclick="closeModal()">Закрыть</button></div>
             `;
-            document.querySelectorAll('.currency-item').forEach(item => {
-                item.onclick = () => {
-                    const newCurrency = item.getAttribute('data-currency');
-                    const oldBalanceUSD = getBalanceInUSD();
-                    userData.currency = newCurrency;
-                    if (newCurrency === 'RUB') {
-                        userData.balance = oldBalanceUSD * USD_TO_RUB;
-                    } else {
-                        userData.balance = oldBalanceUSD / exchangeRates[newCurrency];
-                    }
-                    updateBalanceDisplay();
-                    if (currentTab === 'wallet') renderWallet();
-                    closeModal();
-                    tg.showAlert(`Валюта изменена на ${newCurrency}`);
-                };
+            document.querySelectorAll('.stat-card[data-section="pending"]').forEach(c => c.onclick = () => showPendingPayments());
+            document.querySelectorAll('.stat-card[data-section="settings"]').forEach(c => c.onclick = () => showSettingsEditor());
+            document.querySelectorAll('.transaction-item[data-payment]').forEach(item => {
+                item.onclick = () => showPaymentDetails(parseInt(item.getAttribute('data-payment')));
             });
             document.getElementById('modal').classList.add('active');
         }
-
-        function getCurrencyIcon(currency) {
-            const icons = {
-                TON: '💎', BTC: '₿', ETH: 'Ξ', USDT: '💰',
-                BNB: '🔶', SOL: '◎', TRX: 'TRX', LTC: 'Ł', 
-                DOGE: 'Ð', XRP: 'XRP', RUB: '₽'
-            };
-            return icons[currency] || '🪙';
+        
+        function showPendingPayments() {
+            const pending = userData.pendingPayments.filter(p => p.status === 'pending');
+            document.getElementById('adminSection').innerHTML = `
+                <div class="section-header"><div class="section-title">⏳ Ожидающие платежи (${pending.length})</div></div>
+                <div class="transactions-list">${pending.length > 0 ? pending.map(p => `
+                    <div class="transaction-item pending-payment" data-payment="${p.id}"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-clock"></i></div><div class="transaction-info"><h4>${p.userName}</h4><p>${p.method} | ${p.amount} ${p.currency === 'RUB' ? '₽' : p.currency}</p><p>${p.date}</p></div></div><div><span class="status-badge status-pending">Ожидает</span></div></div>
+                `).join('') : '<div style="text-align:center; padding:20px;">Нет платежей</div>'}</div>
+                <button class="modal-btn cancel" style="margin-top:16px;" onclick="showAdminPanel()">← Назад</button>
+            `;
+            document.querySelectorAll('.transaction-item[data-payment]').forEach(item => {
+                item.onclick = () => showPaymentDetails(parseInt(item.getAttribute('data-payment')));
+            });
         }
-
-        // ========== ПЛАТЕЖНАЯ СИСТЕМА ==========
+        
+        function showPaymentDetails(paymentId) {
+            const payment = userData.pendingPayments.find(p => p.id === paymentId);
+            if (!payment) return;
+            document.getElementById('adminSection').innerHTML = `
+                <div class="section-header"><div class="section-title">Детали платежа #${payment.id}</div></div>
+                <div class="balance-card" style="padding:16px;"><div><strong>👤 Пользователь:</strong> ${payment.userName} (ID: ${payment.userId})</div>
+                <div><strong>💰 Сумма:</strong> ${payment.amount} ${payment.currency === 'RUB' ? '₽' : payment.currency}</div>
+                <div><strong>💳 Способ:</strong> ${payment.method}</div><div><strong>📅 Дата:</strong> ${payment.date}</div>
+                ${payment.screenshot ? `<div class="screenshot-preview"><strong>📸 Скриншот:</strong><br><img src="${payment.screenshot}" style="max-width:100%; border-radius:12px; margin-top:10px;"></div>` : '<div class="address-text">⚠️ Скриншот не загружен</div>'}</div>
+                <div class="modal-buttons"><button class="modal-btn confirm" onclick="approvePaymentFromModal(${paymentId})">✅ Подтвердить</button><button class="modal-btn cancel" onclick="rejectPaymentFromModal(${paymentId})">❌ Отклонить</button></div>
+                <button class="modal-btn cancel" style="margin-top:12px;" onclick="showPendingPayments()">← Назад</button>
+            `;
+        }
+        
+        function approvePaymentFromModal(paymentId) { if (approvePayment(paymentId)) { tg.showAlert('✅ Платеж подтвержден!'); showPendingPayments(); } }
+        function rejectPaymentFromModal(paymentId) { if (rejectPayment(paymentId)) { tg.showAlert('❌ Платеж отклонен'); showPendingPayments(); } }
+        
+        function showSettingsEditor() {
+            document.getElementById('adminSection').innerHTML = `
+                <div class="section-header"><div class="section-title">⚙️ Редактирование реквизитов</div></div>
+                <div style="margin-bottom:16px;"><label>💳 Номер карты:</label><input type="text" id="editCardNumber" class="modal-input" value="${adminSettings.cardNumber}"></div>
+                <div style="margin-bottom:16px;"><label>👤 Держатель карты:</label><input type="text" id="editCardHolder" class="modal-input" value="${adminSettings.cardHolder}"></div>
+                <div style="margin-bottom:16px;"><label>🏦 Банк СБП:</label><input type="text" id="editSbpBank" class="modal-input" value="${adminSettings.sbpBank}"></div>
+                <div style="margin-bottom:16px;"><label>📱 Телефон СБП:</label><input type="text" id="editSbpPhone" class="modal-input" value="${adminSettings.sbpPhone}"></div>
+                <div style="margin-bottom:16px;"><label>💎 TON кошелек:</label><input type="text" id="editTonWallet" class="modal-input" value="${adminSettings.tonWallet}"></div>
+                <div style="margin-bottom:16px;"><label>₿ BTC кошелек:</label><input type="text" id="editBtcWallet" class="modal-input" value="${adminSettings.btcWallet}"></div>
+                <div style="margin-bottom:16px;"><label>💰 USDT кошелек:</label><input type="text" id="editUsdtWallet" class="modal-input" value="${adminSettings.usdtWallet}"></div>
+                <div style="margin-bottom:16px;"><label>💛 ЮMoney кошелек:</label><input type="text" id="editYoomoneyWallet" class="modal-input" value="${adminSettings.yoomoneyWallet}"></div>
+                <div class="modal-buttons"><button class="modal-btn confirm" onclick="saveSettings()">💾 Сохранить</button><button class="modal-btn cancel" onclick="showAdminPanel()">Отмена</button></div>
+            `;
+        }
+        
+        function saveSettings() {
+            adminSettings.cardNumber = document.getElementById('editCardNumber')?.value || adminSettings.cardNumber;
+            adminSettings.cardHolder = document.getElementById('editCardHolder')?.value || adminSettings.cardHolder;
+            adminSettings.sbpBank = document.getElementById('editSbpBank')?.value || adminSettings.sbpBank;
+            adminSettings.sbpPhone = document.getElementById('editSbpPhone')?.value || adminSettings.sbpPhone;
+            adminSettings.tonWallet = document.getElementById('editTonWallet')?.value || adminSettings.tonWallet;
+            adminSettings.btcWallet = document.getElementById('editBtcWallet')?.value || adminSettings.btcWallet;
+            adminSettings.usdtWallet = document.getElementById('editUsdtWallet')?.value || adminSettings.usdtWallet;
+            adminSettings.yoomoneyWallet = document.getElementById('editYoomoneyWallet')?.value || adminSettings.yoomoneyWallet;
+            localStorage.setItem('adminSettings', JSON.stringify(adminSettings));
+            tg.showAlert('✅ Настройки сохранены!');
+            showAdminPanel();
+        }
+        
+        // Пополнение со скриншотом
         let selectedPaymentMethod = null;
         let depositAmount = 0;
-
+        let screenshotDataUrl = null;
+        
         function showDepositModal() {
             selectedPaymentMethod = null;
             depositAmount = 0;
-            
+            screenshotDataUrl = null;
             const isRUB = userData.currency === 'RUB';
-            const currencySymbol = isRUB ? '₽' : '$';
-            
             document.getElementById('modalContent').innerHTML = `
                 <h3><i class="fas fa-plus-circle"></i> Пополнение баланса</h3>
                 <input type="number" id="depositAmount" class="modal-input" placeholder="Сумма в ${isRUB ? 'RUB' : 'USD'}" step="${isRUB ? 100 : 10}" min="${isRUB ? 100 : 10}">
-                <div style="margin: 16px 0;">
-                    <div style="margin-bottom: 12px; font-size:14px;">Способ оплаты:</div>
-                    <div id="paymentMethodsList"></div>
-                </div>
+                <div style="margin:16px 0;"><div style="margin-bottom:12px;">Способ оплаты:</div><div id="paymentMethodsList"></div></div>
                 <div id="paymentDetails"></div>
-                <div class="modal-buttons">
-                    <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
-                    <button class="modal-btn confirm" onclick="processPayment()">Пополнить</button>
-                </div>
+                <div id="screenshotSection" style="display:none;"><div style="margin:16px 0;"><label>📸 Скриншот перевода:</label><input type="file" id="screenshotInput" accept="image/*" style="background:var(--bg-dark); border:1px solid var(--border); border-radius:16px; padding:12px; width:100%;"><div id="screenshotPreview"></div></div></div>
+                <div class="modal-buttons"><button class="modal-btn cancel" onclick="closeModal()">Отмена</button><button class="modal-btn confirm" onclick="submitPayment()">Отправить на проверку</button></div>
             `;
-            
-            // Платежные методы с учётом RUB
             const paymentMethods = [
-                { id: 'stars', name: 'Telegram Stars', icon: '⭐', desc: 'Официальная платежная система Telegram' },
-                { id: 'ton', name: 'TON (Telegram)', icon: '💎', desc: 'Прямой перевод в TON' },
-                { id: 'btc', name: 'Bitcoin', icon: '₿', desc: 'Сеть Bitcoin' },
-                { id: 'usdt', name: 'USDT (TRC-20)', icon: '💰', desc: 'Сеть TRC-20' },
-                { id: 'card', name: 'Банковская карта', icon: '💳', desc: 'Visa / Mastercard / МИР' },
+                { id: 'card', name: 'Банковская карта', icon: '💳', desc: 'Visa / Mastercard' },
                 { id: 'sbp', name: 'СБП', icon: '🏦', desc: 'Система быстрых платежей' },
-                { id: 'yoomoney', name: 'ЮMoney', icon: '💛', desc: 'Электронный кошелек' },
-                { id: 'rub', name: 'Перевод по СБП (₽)', icon: '🇷🇺', desc: 'Прямой рублевый перевод', rub: true }
+                { id: 'ton', name: 'TON', icon: '💎', desc: 'Telegram криптовалюта' },
+                { id: 'usdt', name: 'USDT', icon: '💰', desc: 'Криптовалюта' },
+                { id: 'yoomoney', name: 'ЮMoney', icon: '💛', desc: 'Электронный кошелек' }
             ];
-            
-            const methodsHtml = paymentMethods.map(m => `
-                <div class="payment-method" data-method="${m.id}">
-                    <div class="payment-icon">${m.icon}</div>
-                    <div style="flex:1">
-                        <div><strong>${m.name}</strong></div>
-                        <div style="font-size:12px; color:var(--text-secondary);">${m.desc}</div>
-                    </div>
-                    <div><i class="fas fa-chevron-right"></i></div>
-                </div>
-            `).join('');
-            
-            document.getElementById('paymentMethodsList').innerHTML = methodsHtml;
-            
+            document.getElementById('paymentMethodsList').innerHTML = paymentMethods.map(m => `<div class="payment-method" data-method="${m.id}"><div class="payment-icon">${m.icon}</div><div style="flex:1"><strong>${m.name}</strong><div style="font-size:12px; color:var(--text-secondary);">${m.desc}</div></div><div><i class="fas fa-chevron-right"></i></div></div>`).join('');
             document.querySelectorAll('.payment-method').forEach(method => {
                 method.onclick = () => {
                     document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
                     method.classList.add('selected');
                     selectedPaymentMethod = method.getAttribute('data-method');
-                    showPaymentDetails();
+                    showPaymentDetailsForDeposit();
+                    document.getElementById('screenshotSection').style.display = 'block';
                 };
             });
-            
             const amountInput = document.getElementById('depositAmount');
-            if (amountInput) {
-                amountInput.oninput = (e) => {
-                    depositAmount = parseFloat(e.target.value) || 0;
-                    if (selectedPaymentMethod) showPaymentDetails();
-                };
-            }
-            
+            if (amountInput) amountInput.oninput = (e) => { depositAmount = parseFloat(e.target.value) || 0; if (selectedPaymentMethod) showPaymentDetailsForDeposit(); };
+            const screenshotInput = document.getElementById('screenshotInput');
+            if (screenshotInput) screenshotInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) { const reader = new FileReader(); reader.onload = (event) => { screenshotDataUrl = event.target.result; const preview = document.getElementById('screenshotPreview'); if (preview) preview.innerHTML = `<div class="screenshot-preview"><img src="${screenshotDataUrl}" style="max-width:100%; border-radius:12px;"></div>`; }; reader.readAsDataURL(file); }
+            };
             document.getElementById('modal').classList.add('active');
         }
         
-        function showPaymentDetails() {
+        function showPaymentDetailsForDeposit() {
             const amount = parseFloat(document.getElementById('depositAmount')?.value) || 0;
             const detailsDiv = document.getElementById('paymentDetails');
             const isRUB = userData.currency === 'RUB';
-            const minAmount = isRUB ? 100 : 10;
-            
-            if (!amount || amount < minAmount) {
-                detailsDiv.innerHTML = `<div style="color: var(--red); font-size:12px;">Минимальная сумма: ${minAmount} ${isRUB ? 'RUB' : 'USD'}</div>`;
-                return;
-            }
-            
-            // Конвертация суммы в целевую валюту
-            let cryptoAmount;
-            if (userData.currency === 'RUB') {
-                cryptoAmount = amount;
-            } else {
-                cryptoAmount = amount / exchangeRates[userData.currency];
-            }
-            
+            if (!amount || amount < (isRUB ? 100 : 10)) { detailsDiv.innerHTML = `<div style="color:var(--red);">Минимальная сумма: ${isRUB ? 100 : 10} ${isRUB ? 'RUB' : 'USD'}</div>`; return; }
             const rubAmount = isRUB ? amount : amount * USD_TO_RUB;
-            
             const details = {
-                stars: `
-                    <div style="background: linear-gradient(135deg, #ffd70020, #ff8c0020); border-radius: 16px; padding: 16px; margin: 16px 0; text-align: center;">
-                        <div style="font-size: 48px;">⭐</div>
-                        <div style="margin: 8px 0;">Оплата через Telegram Stars</div>
-                        <div style="font-size: 24px; font-weight: 700;">${amount} Stars</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
-                            Вы получите: ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency} ${isRUB ? '₽' : ''}
-                        </div>
-                    </div>
-                `,
-                ton: `
-                    <div class="address-text">
-                        <strong>Переведите TON на этот адрес:</strong><br>
-                        UQD0${Math.random().toString(36).substring(2, 20).toUpperCase()}<br>
-                        <strong>Сумма:</strong> ${(amount / (isRUB ? USD_TO_RUB : 1) / exchangeRates.TON).toFixed(4)} TON<br>
-                        <strong>Вы получите:</strong> ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency} ${isRUB ? '₽' : ''}<br>
-                        <small style="color: var(--text-secondary);">После перевода баланс обновится автоматически</small>
-                    </div>
-                `,
-                btc: `
-                    <div class="address-text">
-                        <strong>Переведите BTC на этот адрес:</strong><br>
-                        bc1q${Math.random().toString(36).substring(2, 20).toLowerCase()}<br>
-                        <strong>Сумма:</strong> ${((amount / (isRUB ? USD_TO_RUB : 1)) / exchangeRates.BTC).toFixed(8)} BTC<br>
-                        <strong>Вы получите:</strong> ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}
-                    </div>
-                `,
-                usdt: `
-                    <div class="address-text">
-                        <strong>Переведите USDT (TRC-20) на этот адрес:</strong><br>
-                        T${Math.random().toString(36).substring(2, 25).toUpperCase()}<br>
-                        <strong>Сумма:</strong> ${isRUB ? (amount / USD_TO_RUB).toFixed(2) : amount} USDT<br>
-                        <strong>Вы получите:</strong> ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}
-                    </div>
-                `,
-                card: `
-                    <div class="address-text">
-                        <strong>Оплата банковской картой</strong><br>
-                        Сумма: ${rubAmount.toFixed(2)} ₽ (≈ ${amount} ${isRUB ? 'RUB' : 'USD'})<br>
-                        После нажатия "Пополнить" откроется платежная форма<br>
-                        <small>Поддержка: Visa, Mastercard, МИР</small>
-                    </div>
-                `,
-                sbp: `
-                    <div class="address-text">
-                        <strong>Оплата через СБП</strong><br>
-                        Сумма: ${rubAmount.toFixed(2)} ₽<br>
-                        QR-код будет сгенерирован после подтверждения<br>
-                        <small>Комиссия: 0%</small>
-                    </div>
-                `,
-                yoomoney: `
-                    <div class="address-text">
-                        <strong>Перевод на ЮMoney</strong><br>
-                        Кошелек: 41001${Math.floor(Math.random() * 100000000)}<br>
-                        Сумма: ${rubAmount.toFixed(2)} ₽<br>
-                        <strong>Вы получите:</strong> ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}
-                    </div>
-                `,
-                rub: `
-                    <div class="address-text">
-                        <strong>🇷🇺 Рублевый перевод по СБП</strong><br>
-                        <strong>Сумма:</strong> ${rubAmount.toFixed(2)} ₽<br>
-                        <strong>Вы получите:</strong> ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}<br>
-                        <hr style="margin: 12px 0; border-color: var(--border);">
-                        <strong>Реквизиты:</strong><br>
-                        Банк: Т-Банк<br>
-                        Номер карты: 5536 9138 ${Math.floor(Math.random() * 10000)} ${Math.floor(Math.random() * 10000)}<br>
-                        Получатель: ${userName || 'Иван Иванов'}<br>
-                        <small style="color: var(--text-secondary);">После перевода нажмите "Я оплатил"</small>
-                    </div>
-                `
+                card: `<div class="address-text"><strong>💳 Реквизиты:</strong><br>Карта: ${adminSettings.cardNumber}<br>Держатель: ${adminSettings.cardHolder}<br>Сумма: ${rubAmount.toFixed(2)} ₽</div>`,
+                sbp: `<div class="address-text"><strong>🏦 СБП:</strong><br>Банк: ${adminSettings.sbpBank}<br>Телефон: ${adminSettings.sbpPhone}<br>Сумма: ${rubAmount.toFixed(2)} ₽</div>`,
+                ton: `<div class="address-text"><strong>💎 TON:</strong><br>Кошелек: ${adminSettings.tonWallet}<br>Сумма: ${(amount / exchangeRates.TON).toFixed(4)} TON</div>`,
+                usdt: `<div class="address-text"><strong>💰 USDT:</strong><br>Кошелек: ${adminSettings.usdtWallet}<br>Сумма: ${amount} USDT</div>`,
+                yoomoney: `<div class="address-text"><strong>💛 ЮMoney:</strong><br>Кошелек: ${adminSettings.yoomoneyWallet}<br>Сумма: ${rubAmount.toFixed(2)} ₽</div>`
             };
-            
             detailsDiv.innerHTML = details[selectedPaymentMethod] || '';
         }
         
-        async function processPayment() {
+        function submitPayment() {
             const amount = parseFloat(document.getElementById('depositAmount')?.value) || 0;
-            const isRUB = userData.currency === 'RUB';
-            const minAmount = isRUB ? 100 : 10;
-            
-            if (!amount || amount < minAmount) {
-                tg.showAlert(`❌ Введите сумму от ${minAmount} ${isRUB ? 'RUB' : 'USD'}`);
-                return;
-            }
-            if (!selectedPaymentMethod) {
-                tg.showAlert('❌ Выберите способ оплаты');
-                return;
-            }
-            
-            let cryptoAmount;
-            if (userData.currency === 'RUB') {
-                cryptoAmount = amount;
-            } else {
-                cryptoAmount = amount / exchangeRates[userData.currency];
-            }
-            
-            // Telegram Stars
-            if (selectedPaymentMethod === 'stars') {
-                try {
-                    tg.showPopup({
-                        title: '⭐ Оплата Telegram Stars',
-                        message: `Списать ${amount} Stars для пополнения на ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}?`,
-                        buttons: [
-                            { id: 'cancel', type: 'cancel', text: 'Отмена' },
-                            { id: 'pay', type: 'default', text: 'Оплатить' }
-                        ]
-                    }, (buttonId) => {
-                        if (buttonId === 'pay') {
-                            userData.balance += cryptoAmount;
-                            addTransaction('receive', 'Пополнение через Stars', 'Telegram Stars', cryptoAmount);
-                            updateBalanceDisplay();
-                            if (currentTab === 'wallet') renderWallet();
-                            tg.showAlert(`✅ Баланс пополнен на ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}!`);
-                            closeModal();
-                        }
-                    });
-                } catch(e) {
-                    userData.balance += cryptoAmount;
-                    addTransaction('receive', 'Пополнение (DEMO)', 'Платежная система', cryptoAmount);
-                    updateBalanceDisplay();
-                    if (currentTab === 'wallet') renderWallet();
-                    tg.showAlert(`✅ ДЕМО: Баланс пополнен на ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}!`);
-                    closeModal();
-                }
-                return;
-            }
-            
-            // Рублевый перевод
-            if (selectedPaymentMethod === 'rub') {
-                tg.showConfirm(`Подтверждаете перевод ${(amount * (isRUB ? 1 : USD_TO_RUB)).toFixed(2)} ₽? После оплаты баланс пополнится.`, (confirmed) => {
-                    if (confirmed) {
-                        setTimeout(() => {
-                            userData.balance += cryptoAmount;
-                            addTransaction('receive', 'Пополнение через СБП', 'Рублевый перевод', cryptoAmount);
-                            updateBalanceDisplay();
-                            if (currentTab === 'wallet') renderWallet();
-                            tg.showAlert(`✅ Баланс пополнен на ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}!`);
-                        }, 3000);
-                        closeModal();
-                    }
-                });
-                return;
-            }
-            
-            // Крипто-платежи
-            tg.showConfirm(`После перевода баланс пополнится автоматически. Продолжить?`, (confirmed) => {
-                if (confirmed) {
-                    tg.showAlert(`💰 Инструкция по оплате отправлена! После перевода баланс обновится.`);
-                    setTimeout(() => {
-                        userData.balance += cryptoAmount;
-                        addTransaction('receive', `Пополнение через ${selectedPaymentMethod.toUpperCase()}`, 'Внешний перевод', cryptoAmount);
-                        updateBalanceDisplay();
-                        if (currentTab === 'wallet') renderWallet();
-                        tg.showAlert(`✅ Баланс пополнен на ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}!`);
-                    }, 3000);
-                    closeModal();
-                }
-            });
+            if (!amount || amount < (userData.currency === 'RUB' ? 100 : 10)) { tg.showAlert('❌ Введите корректную сумму'); return; }
+            if (!selectedPaymentMethod) { tg.showAlert('❌ Выберите способ оплаты'); return; }
+            if (!screenshotDataUrl) { tg.showAlert('📸 Приложите скриншот перевода'); return; }
+            const pending = addPendingPayment(amount, selectedPaymentMethod, screenshotDataUrl);
+            tg.showAlert(`✅ Заявка #${pending.id} отправлена!\nСумма: ${amount} ${userData.currency === 'RUB' ? '₽' : userData.currency}\nАдминистратор проверит платеж.`);
+            closeModal();
+            if (currentTab === 'wallet') renderWallet();
         }
-
-        // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ==========
+        
+        // Остальные функции
+        function showCurrencyModal() {
+            const currencies = Object.keys(exchangeRates);
+            document.getElementById('modalContent').innerHTML = `<h3><i class="fas fa-coins"></i> Выберите валюту</h3><div class="currency-list">${currencies.map(curr => `<div class="currency-item ${userData.currency === curr ? 'selected' : ''}" data-currency="${curr}"><div class="currency-symbol">${getCurrencyIcon(curr)}</div><div>${curr}</div></div>`).join('')}</div><div class="modal-buttons"><button class="modal-btn cancel" onclick="closeModal()">Закрыть</button></div>`;
+            document.querySelectorAll('.currency-item').forEach(item => { item.onclick = () => { const newCurrency = item.getAttribute('data-currency'); const oldBalanceUSD = getBalanceInUSD(); userData.currency = newCurrency; userData.balance = newCurrency === 'RUB' ? oldBalanceUSD * USD_TO_RUB : oldBalanceUSD / exchangeRates[newCurrency]; updateBalanceDisplay(); if (currentTab === 'wallet') renderWallet(); closeModal(); tg.showAlert(`Валюта: ${newCurrency}`); }; });
+            document.getElementById('modal').classList.add('active');
+        }
+        
+        function getCurrencyIcon(currency) { const icons = { TON:'💎', BTC:'₿', ETH:'Ξ', USDT:'💰', BNB:'🔶', SOL:'◎', TRX:'TRX', LTC:'Ł', DOGE:'Ð', XRP:'XRP', RUB:'₽' }; return icons[currency] || '🪙'; }
+        
         function showSendModal() {
-            document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-paper-plane"></i> Отправить ${userData.currency}</h3>
-                <input type="text" id="sendAddress" class="modal-input" placeholder="Адрес получателя">
-                <input type="number" id="sendAmount" class="modal-input" placeholder="Сумма в ${userData.currency}">
-                <div class="modal-buttons">
-                    <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
-                    <button class="modal-btn confirm" onclick="sendTransaction()">Отправить</button>
-                </div>
-            `;
+            document.getElementById('modalContent').innerHTML = `<h3><i class="fas fa-paper-plane"></i> Отправить ${userData.currency}</h3><input type="text" id="sendAddress" class="modal-input" placeholder="Адрес"><input type="number" id="sendAmount" class="modal-input" placeholder="Сумма"><div class="modal-buttons"><button class="modal-btn cancel" onclick="closeModal()">Отмена</button><button class="modal-btn confirm" onclick="sendTransaction()">Отправить</button></div>`;
             document.getElementById('modal').classList.add('active');
         }
         
         function sendTransaction() {
             const address = document.getElementById('sendAddress')?.value.trim();
             const amount = parseFloat(document.getElementById('sendAmount')?.value);
-            
-            if (!address || address.length < 5) {
-                tg.showAlert('❌ Введите корректный адрес');
-                return;
-            }
-            if (!amount || amount <= 0) {
-                tg.showAlert('❌ Введите сумму больше 0');
-                return;
-            }
-            if (amount > userData.balance) {
-                tg.showAlert(`❌ Недостаточно средств! Баланс: ${userData.balance.toFixed(4)} ${userData.currency}`);
-                return;
-            }
-            
-            tg.showConfirm(`Отправить ${amount} ${userData.currency} на адрес ${address.slice(0,6)}...${address.slice(-4)}?`, (confirmed) => {
-                if (confirmed) {
-                    userData.balance -= amount;
-                    addTransaction('send', 'Отправлено', address.slice(0,10)+'...', -amount);
-                    updateBalanceDisplay();
-                    if (currentTab === 'wallet') renderWallet();
-                    tg.showAlert(`✅ Отправлено ${amount} ${userData.currency}!`, () => closeModal());
-                }
-            });
+            if (!address || address.length < 5) { tg.showAlert('❌ Введите адрес'); return; }
+            if (!amount || amount <= 0) { tg.showAlert('❌ Введите сумму'); return; }
+            if (amount > userData.balance) { tg.showAlert('❌ Недостаточно средств'); return; }
+            tg.showConfirm(`Отправить ${amount} ${userData.currency}?`, (confirmed) => { if (confirmed) { userData.balance -= amount; addTransaction('send', 'Отправлено', address.slice(0,10)+'...', -amount); updateBalanceDisplay(); if (currentTab === 'wallet') renderWallet(); tg.showAlert(`✅ Отправлено ${amount} ${userData.currency}!`, () => closeModal()); } });
         }
         
         function showReceiveModal() {
-            let walletAddress;
-            if (userData.currency === 'RUB') {
-                walletAddress = `Номер карты: 5536 9138 ${Math.floor(Math.random() * 10000)} ${Math.floor(Math.random() * 10000)}`;
-            } else if (userData.currency === 'BTC') {
-                walletAddress = `bc1q${Math.random().toString(36).substring(2, 20).toLowerCase()}`;
-            } else if (userData.currency === 'ETH') {
-                walletAddress = `0x${Math.random().toString(36).substring(2, 30).toUpperCase()}`;
-            } else {
-                walletAddress = `UQ${Math.random().toString(36).substring(2, 20).toUpperCase()}`;
-            }
-            
-            document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-qrcode"></i> Получить ${userData.currency}</h3>
-                <div style="text-align:center; padding:10px;">
-                    <div style="background:white; display:inline-block; padding:15px; border-radius:20px; margin-bottom:15px;">
-                        <i class="fas fa-qrcode" style="font-size:80px; color:#000;"></i>
-                    </div>
-                    <div class="address-text">
-                        <strong>${userData.currency === 'RUB' ? 'Реквизиты для перевода:' : 'Ваш адрес для ' + userData.currency + ':'}</strong><br>
-                        ${walletAddress}
-                    </div>
-                    ${userData.currency === 'RUB' ? '<div style="margin-top:12px; font-size:12px; color:var(--text-secondary);">Поддерживаются переводы по СБП и на карту</div>' : ''}
-                </div>
-                <div class="modal-buttons">
-                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
-                </div>
-            `;
+            let walletAddress = userData.currency === 'RUB' ? `Карта: ${adminSettings.cardNumber}` : userData.currency === 'TON' ? adminSettings.tonWallet : userData.currency === 'BTC' ? adminSettings.btcWallet : userData.currency === 'USDT' ? adminSettings.usdtWallet : `UQ${Math.random().toString(36).substring(2,20)}`;
+            document.getElementById('modalContent').innerHTML = `<h3><i class="fas fa-qrcode"></i> Получить ${userData.currency}</h3><div style="text-align:center;"><div style="background:white; display:inline-block; padding:15px; border-radius:20px;"><i class="fas fa-qrcode" style="font-size:80px; color:#000;"></i></div><div class="address-text"><strong>Реквизиты:</strong><br>${walletAddress}</div></div><div class="modal-buttons"><button class="modal-btn cancel" onclick="closeModal()">Закрыть</button></div>`;
             document.getElementById('modal').classList.add('active');
         }
-
+        
         function showHistoryModal() {
-            document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-history"></i> Все транзакции</h3>
-                <div style="max-height: 400px; overflow-y: auto;">
-                    ${userData.transactions.map(tx => `
-                        <div style="display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border);">
-                            <div><strong>${tx.title}</strong><br><small>${tx.date}</small></div>
-                            <div style="color: ${tx.amount > 0 ? '#00d47e' : '#ff4757'}">${tx.amount > 0 ? '+' : ''}${tx.amount.toFixed(4)} ${tx.coin}</div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="modal-buttons"><button class="modal-btn cancel" onclick="closeModal()">Закрыть</button></div>
-            `;
+            document.getElementById('modalContent').innerHTML = `<h3><i class="fas fa-history"></i> Все транзакции</h3><div style="max-height:400px; overflow-y:auto;">${userData.transactions.map(tx => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border);"><div><strong>${tx.title}</strong><br><small>${tx.date}</small></div><div style="color:${tx.amount>0?'#00d47e':'#ff4757'}">${tx.amount>0?'+':''}${tx.amount.toFixed(4)} ${tx.coin}</div></div>`).join('')}</div><div class="modal-buttons"><button class="modal-btn cancel" onclick="closeModal()">Закрыть</button></div>`;
             document.getElementById('modal').classList.add('active');
         }
-
-        // ========== ОТРИСОВКА ВКЛАДОК ==========
+        
+        function updateBalanceDisplay() {
+            const balanceEl = document.querySelector('.balance-amount');
+            if (balanceEl) balanceEl.innerHTML = formatBalance();
+            const usdEl = document.querySelector('.balance-usd');
+            if (usdEl) usdEl.innerHTML = `≈ $${getBalanceInUSD().toFixed(2)} USD`;
+        }
+        
         function renderWallet() {
-            const stakingInCurrent = userData.currency === 'RUB' 
-                ? (userData.staking * exchangeRates.TON * USD_TO_RUB).toFixed(2)
-                : (userData.staking * exchangeRates.TON / exchangeRates[userData.currency]).toFixed(4);
-                
-            const earnedInCurrent = userData.currency === 'RUB'
-                ? (userData.totalEarned * exchangeRates.TON * USD_TO_RUB).toFixed(2)
-                : (userData.totalEarned * exchangeRates.TON / exchangeRates[userData.currency]).toFixed(4);
-            
             document.getElementById('app').innerHTML = `
-                <div class="balance-card">
-                    <div class="balance-label">Общий баланс</div>
-                    <div class="balance-amount">${formatBalance()}</div>
-                    <div class="balance-usd" style="font-size:14px; color:var(--text-secondary);">
-                        ${userData.currency === 'RUB' ? `≈ $${getBalanceInUSD().toFixed(2)} USD` : `≈ $${getBalanceInUSD().toFixed(2)} USD | ₽${getBalanceInRUB().toFixed(2)}`}
-                    </div>
-                    <div class="currency-selector" id="currencySelector">
-                        <i class="fas fa-exchange-alt"></i>
-                        <span>${userData.currency}</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                </div>
-                <div class="actions-grid">
-                    <div class="action-btn" data-action="send"><div class="action-icon"><i class="fas fa-paper-plane"></i></div><div class="action-label">Отправить</div></div>
-                    <div class="action-btn" data-action="receive"><div class="action-icon"><i class="fas fa-qrcode"></i></div><div class="action-label">Получить</div></div>
-                    <div class="action-btn" data-action="deposit"><div class="action-icon"><i class="fas fa-plus-circle"></i></div><div class="action-label">Пополнить</div></div>
-                    <div class="action-btn" data-action="history"><div class="action-icon"><i class="fas fa-history"></i></div><div class="action-label">История</div></div>
-                </div>
-                <div class="stats-row">
-                    <div class="stat-card"><div><i class="fas fa-chart-simple"></i> В стейкинге</div><div class="stat-value">${stakingInCurrent} ${userData.currency === 'RUB' ? '₽' : userData.currency}</div></div>
-                    <div class="stat-card"><div><i class="fas fa-coins"></i> Доход</div><div class="stat-value">+${earnedInCurrent} ${userData.currency === 'RUB' ? '₽' : userData.currency}</div></div>
-                </div>
+                <div class="balance-card"><div class="balance-label">Общий баланс</div><div class="balance-amount">${formatBalance()}</div><div class="balance-usd" style="font-size:14px; color:var(--text-secondary);">≈ $${getBalanceInUSD().toFixed(2)} USD</div><div class="currency-selector" id="currencySelector"><i class="fas fa-exchange-alt"></i><span>${userData.currency}</span><i class="fas fa-chevron-down"></i></div></div>
+                <div class="actions-grid"><div class="action-btn" data-action="send"><div class="action-icon"><i class="fas fa-paper-plane"></i></div><div class="action-label">Отправить</div></div><div class="action-btn" data-action="receive"><div class="action-icon"><i class="fas fa-qrcode"></i></div><div class="action-label">Получить</div></div><div class="action-btn" data-action="deposit"><div class="action-icon"><i class="fas fa-plus-circle"></i></div><div class="action-label">Пополнить</div></div><div class="action-btn" data-action="history"><div class="action-icon"><i class="fas fa-history"></i></div><div class="action-label">История</div></div></div>
+                ${isAdmin ? `<div class="admin-btn" id="adminPanelBtn"><i class="fas fa-crown"></i> Админ-панель</div>` : ''}
+                <div class="stats-row"><div class="stat-card"><div><i class="fas fa-chart-simple"></i> В стейкинге</div><div class="stat-value">${userData.staking} TON</div></div><div class="stat-card"><div><i class="fas fa-coins"></i> Доход</div><div class="stat-value">+${userData.totalEarned} TON</div></div></div>
                 <div class="section-header"><div class="section-title">Последние транзакции</div></div>
-                <div class="transactions-list">
-                    ${userData.transactions.slice(0,5).map((tx, i) => `
-                        <div class="transaction-item">
-                            <div class="transaction-left">
-                                <div class="transaction-icon"><i class="fas ${tx.type === 'send' ? 'fa-arrow-up' : (tx.type === 'receive' ? 'fa-arrow-down' : 'fa-gift')}"></i></div>
-                                <div class="transaction-info"><h4>${tx.title}</h4><p>${tx.address}</p></div>
-                            </div>
-                            <div class="transaction-amount">
-                                <div class="amount ${tx.amount > 0 ? 'positive' : 'negative'}">${tx.amount > 0 ? '+' : ''}${tx.amount.toFixed(4)} ${tx.coin}</div>
-                                <div class="transaction-date">${tx.date}</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
+                <div class="transactions-list">${userData.transactions.slice(0,5).map(tx => `<div class="transaction-item"><div class="transaction-left"><div class="transaction-icon"><i class="fas ${tx.type==='send'?'fa-arrow-up':'fa-arrow-down'}"></i></div><div class="transaction-info"><h4>${tx.title}</h4><p>${tx.address}</p></div></div><div class="transaction-amount"><div class="amount ${tx.amount>0?'positive':'negative'}">${tx.amount>0?'+':''}${tx.amount.toFixed(4)} ${tx.coin}</div><div class="transaction-date">${tx.date}</div></div></div>`).join('')}</div>
             `;
-            
             document.getElementById('currencySelector').onclick = showCurrencyModal;
-            document.querySelectorAll('.action-btn').forEach(btn => {
-                const action = btn.getAttribute('data-action');
-                btn.onclick = () => {
-                    if (action === 'send') showSendModal();
-                    else if (action === 'receive') showReceiveModal();
-                    else if (action === 'deposit') showDepositModal();
-                    else if (action === 'history') showHistoryModal();
-                };
-            });
+            document.querySelectorAll('.action-btn').forEach(btn => { const action = btn.getAttribute('data-action'); btn.onclick = () => { if (action === 'send') showSendModal(); else if (action === 'receive') showReceiveModal(); else if (action === 'deposit') showDepositModal(); else if (action === 'history') showHistoryModal(); }; });
+            if (isAdmin) document.getElementById('adminPanelBtn').onclick = showAdminPanel;
             updateBalanceDisplay();
         }
-
+        
         function renderCharts() {
-            const priceDisplay = userData.currency === 'RUB' 
-                ? `${ratesInRUB[userData.currency]} ₽`
-                : `$${exchangeRates[userData.currency]}`;
-                
-            document.getElementById('app').innerHTML = `
-                <div class="section-header"><div class="section-title">${userData.currency} / ${userData.currency === 'RUB' ? 'USD' : 'USD'}</div></div>
-                <div class="balance-card"><canvas id="priceChart" style="width:100%; height:120px;"></canvas></div>
-                <div class="stats-row">
-                    <div class="stat-card"><div>Цена ${userData.currency}</div><div class="stat-value">${priceDisplay}</div></div>
-                    <div class="stat-card"><div>24ч изменение</div><div class="stat-value" style="color:#00d47e;">+2.34%</div></div>
-                </div>
-                ${userData.currency === 'RUB' ? `
-                <div class="stats-row">
-                    <div class="stat-card"><div>Курс USD/RUB</div><div class="stat-value">${USD_TO_RUB} ₽</div></div>
-                    <div class="stat-card"><div>Курс TON/RUB</div><div class="stat-value">${(exchangeRates.TON * USD_TO_RUB).toFixed(2)} ₽</div></div>
-                </div>
-                ` : ''}
-            `;
+            document.getElementById('app').innerHTML = `<div class="balance-card"><canvas id="priceChart" style="width:100%; height:120px;"></canvas></div><div class="stats-row"><div class="stat-card"><div>Цена ${userData.currency}</div><div class="stat-value">${userData.currency === 'RUB' ? `${USD_TO_RUB} ₽` : `$${exchangeRates[userData.currency]}`}</div></div><div class="stat-card"><div>24ч</div><div class="stat-value" style="color:#00d47e;">+2.34%</div></div></div>`;
             setTimeout(() => {
                 const canvas = document.getElementById('priceChart');
                 if (canvas) {
                     const ctx = canvas.getContext('2d');
-                    const width = canvas.clientWidth;
-                    const height = canvas.clientHeight;
-                    canvas.width = width;
-                    canvas.height = height;
-                    const padding = 20;
-                    const chartWidth = width - padding * 2;
-                    const chartHeight = height - padding * 2;
-                    const maxValue = Math.max(...chartData);
-                    const minValue = Math.min(...chartData);
-                    ctx.clearRect(0, 0, width, height);
+                    const w = canvas.clientWidth, h = canvas.clientHeight;
+                    canvas.width = w; canvas.height = h;
+                    const pad = 20, cw = w - pad*2, ch = h - pad*2;
+                    const max = Math.max(...chartData), min = Math.min(...chartData);
+                    ctx.clearRect(0,0,w,h);
                     ctx.strokeStyle = '#1c1f26';
-                    for (let i = 0; i <= 4; i++) {
-                        const y = padding + (chartHeight / 4) * i;
-                        ctx.beginPath();
-                        ctx.moveTo(padding, y);
-                        ctx.lineTo(width - padding, y);
-                        ctx.stroke();
-                    }
+                    for(let i=0;i<=4;i++){ const y = pad + (ch/4)*i; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke(); }
                     ctx.beginPath();
-                    let first = true;
-                    chartData.forEach((value, index) => {
-                        const x = padding + (chartWidth / (chartData.length - 1)) * index;
-                        const y = padding + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight;
-                        if (first) { ctx.moveTo(x, y); first = false; }
-                        else { ctx.lineTo(x, y); }
-                    });
+                    let first=true;
+                    chartData.forEach((v,i)=>{ const x = pad + (cw/(chartData.length-1))*i; const y = pad + ch - ((v-min)/(max-min))*ch; if(first){ ctx.moveTo(x,y); first=false; }else{ ctx.lineTo(x,y); } });
                     ctx.strokeStyle = '#00d47e';
                     ctx.lineWidth = 2.5;
                     ctx.stroke();
                 }
             }, 100);
         }
-
+        
         function renderSwap() {
-            const targetCurrency = userData.currency === 'RUB' ? 'USDT' : 'USDT';
-            
             document.getElementById('app').innerHTML = `
-                <div class="balance-card">
-                    <div style="margin-bottom:20px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Отправляете</span><span>Баланс: ${userData.balance.toFixed(4)} ${userData.currency}</span></div>
-                        <div style="background:#0a0a0c; border-radius:20px; padding:16px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <input type="number" id="fromAmount" placeholder="0" style="background:transparent; border:none; font-size:28px; color:white; outline:none; width:60%;">
-                                <div class="currency-selector" style="margin:0;">${userData.currency} <i class="fas fa-chevron-down"></i></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="text-align:center; margin:-8px 0;"><div style="background:var(--green-primary); width:40px; height:40px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;"><i class="fas fa-arrow-down" style="color:white;"></i></div></div>
-                    <div><div style="background:#0a0a0c; border-radius:20px; padding:16px; margin-top:8px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <input type="text" id="toAmount" placeholder="0" readonly style="background:transparent; border:none; font-size:28px; color:white; outline:none; width:60%;">
-                            <div class="currency-selector" style="margin:0;">${targetCurrency} <i class="fas fa-chevron-down"></i></div>
-                        </div>
-                    </div></div>
-                </div>
-                <button id="swapActionBtn" style="width:100%; padding:16px; background:var(--green-primary); color:white; font-weight:600; border:none; border-radius:20px; margin-top:16px;"><i class="fas fa-exchange-alt"></i> Обменять</button>
+                <div class="balance-card"><div style="margin-bottom:20px;"><div style="display:flex; justify-content:space-between;"><span>Отправляете</span><span>Баланс: ${userData.balance.toFixed(4)} ${userData.currency}</span></div><div style="background:#0a0a0c; border-radius:20px; padding:16px;"><div style="display:flex; justify-content:space-between;"><input type="number" id="fromAmount" placeholder="0" style="background:transparent; border:none; font-size:28px; color:white; width:60%;"><div>${userData.currency}</div></div></div></div><div style="text-align:center;"><div style="background:var(--green-primary); width:40px; height:40px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;"><i class="fas fa-arrow-down"></i></div></div><div><div style="background:#0a0a0c; border-radius:20px; padding:16px;"><div style="display:flex; justify-content:space-between;"><input type="text" id="toAmount" placeholder="0" readonly style="background:transparent; border:none; font-size:28px; width:60%;"><div>USDT</div></div></div></div></div>
+                <button id="swapBtn" style="width:100%; padding:16px; background:var(--green-primary); border:none; border-radius:20px; color:white; font-weight:600;">Обменять</button>
             `;
-            
             const fromInput = document.getElementById('fromAmount');
             const toInput = document.getElementById('toAmount');
-            if (fromInput && toInput) {
-                fromInput.oninput = () => {
-                    const val = parseFloat(fromInput.value) || 0;
-                    let usdValue;
-                    if (userData.currency === 'RUB') {
-                        usdValue = val / USD_TO_RUB;
-                    } else {
-                        usdValue = val * exchangeRates[userData.currency];
-                    }
-                    toInput.value = usdValue.toFixed(4);
-                };
-            }
-            
-            document.getElementById('swapActionBtn').onclick = () => {
-                const amount = parseFloat(fromInput.value) || 0;
-                if (amount <= 0) tg.showAlert('Введите сумму');
-                else if (amount > userData.balance) tg.showAlert('Недостаточно средств');
-                else {
-                    let usdValue;
-                    if (userData.currency === 'RUB') {
-                        usdValue = amount / USD_TO_RUB;
-                    } else {
-                        usdValue = amount * exchangeRates[userData.currency];
-                    }
-                    tg.showConfirm(`Обменять ${amount} ${userData.currency} на ${usdValue.toFixed(4)} USDT?`, (confirmed) => {
-                        if (confirmed) {
-                            userData.balance -= amount;
-                            addTransaction('swap', 'Обмен', `${userData.currency} → USDT`, -amount);
-                            updateBalanceDisplay();
-                            renderWallet();
-                            tg.showAlert('✅ Обмен выполнен!');
-                        }
-                    });
-                }
-            };
+            if(fromInput && toInput) fromInput.oninput = () => { const val = parseFloat(fromInput.value)||0; let usd = userData.currency === 'RUB' ? val/USD_TO_RUB : val * exchangeRates[userData.currency]; toInput.value = usd.toFixed(4); };
+            document.getElementById('swapBtn').onclick = () => { const amt = parseFloat(fromInput.value)||0; if(amt<=0) tg.showAlert('Введите сумму'); else if(amt>userData.balance) tg.showAlert('Недостаточно средств'); else tg.showConfirm(`Обменять ${amt} ${userData.currency} на ${toInput.value} USDT?`, c=>{ if(c){ userData.balance -= amt; addTransaction('swap','Обмен',`${userData.currency}→USDT`,-amt); updateBalanceDisplay(); renderWallet(); tg.showAlert('✅ Обмен выполнен'); } }); };
         }
-
+        
         function renderProfile() {
-            const referralLink = `https://t.me/${tg.initDataUnsafe?.user?.username || 'crypto_bot'}?start=${userData.referralCode}`;
-            
             document.getElementById('app').innerHTML = `
-                <div class="balance-card" style="text-align:center;">
-                    <div style="width:80px;height:80px;background:linear-gradient(135deg,#00d47e,#00995a);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;"><i class="fas fa-user" style="font-size:40px;"></i></div>
-                    <h3>${userName}</h3>
-                    <p style="color:var(--text-secondary);margin-top:4px;">ID: ${userId}</p>
-                    <p style="color:var(--text-secondary);font-size:12px;margin-top:4px;">Выбранная валюта: ${userData.currency}</p>
-                </div>
-                <div class="transactions-list">
-                    <div class="transaction-item" data-action="referral">
-                        <div class="transaction-left">
-                            <div class="transaction-icon"><i class="fas fa-users"></i></div>
-                            <div class="transaction-info">
-                                <h4>Реферальная программа</h4>
-                                <p>Пригласи друзей и получай бонусы</p>
-                            </div>
-                        </div>
-                        <div><i class="fas fa-chevron-right"></i></div>
-                    </div>
-                    <div class="transaction-item" data-action="support">
-                        <div class="transaction-left">
-                            <div class="transaction-icon"><i class="fas fa-headset"></i></div>
-                            <div class="transaction-info">
-                                <h4>Поддержка</h4>
-                                <p>Помощь и обратная связь</p>
-                            </div>
-                        </div>
-                        <div><i class="fas fa-chevron-right"></i></div>
-                    </div>
-                    <div class="transaction-item" data-action="close">
-                        <div class="transaction-left">
-                            <div class="transaction-icon"><i class="fas fa-sign-out-alt"></i></div>
-                            <div class="transaction-info">
-                                <h4>Закрыть приложение</h4>
-                                <p>Выйти из Crypto Bot</p>
-                            </div>
-                        </div>
-                        <div><i class="fas fa-chevron-right"></i></div>
-                    </div>
-                </div>
+                <div class="balance-card" style="text-align:center;"><div style="width:80px;height:80px;background:linear-gradient(135deg,#00d47e,#00995a);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-user" style="font-size:40px;"></i></div><h3>${userName}</h3><p style="color:var(--text-secondary);">ID: ${userId}</p></div>
+                <div class="transactions-list"><div class="transaction-item" data-action="referral"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-users"></i></div><div class="transaction-info"><h4>Реферальная программа</h4><p>Пригласи друзей</p></div></div><div><i class="fas fa-chevron-right"></i></div></div><div class="transaction-item" data-action="support"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-headset"></i></div><div class="transaction-info"><h4>Поддержка</h4><p>Помощь</p></div></div><div><i class="fas fa-chevron-right"></i></div></div><div class="transaction-item" data-action="close"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-sign-out-alt"></i></div><div class="transaction-info"><h4>Закрыть</h4><p>Выйти</p></div></div><div><i class="fas fa-chevron-right"></i></div></div></div>
             `;
-            
-            document.querySelectorAll('.transaction-item[data-action]').forEach(item => {
-                const action = item.dataset.action;
-                item.onclick = () => {
-                    if (action === 'referral') {
-                        navigator.clipboard.writeText(referralLink);
-                        tg.showAlert('✅ Реферальная ссылка скопирована!');
-                    } else if (action === 'support') {
-                        tg.openTelegramLink('https://t.me/durov');
-                    } else if (action === 'close') tg.close();
-                };
-            });
+            document.querySelectorAll('.transaction-item[data-action]').forEach(item => { const action = item.dataset.action; item.onclick = () => { if(action === 'referral'){ navigator.clipboard.writeText(`t.me/crypto_bot?start=${userData.referralCode}`); tg.showAlert('✅ Ссылка скопирована'); } else if(action === 'support') tg.openTelegramLink('https://t.me/durov'); else if(action === 'close') tg.close(); }; });
         }
-
-        // ========== НАВИГАЦИЯ ==========
-        document.querySelectorAll('.nav-item').forEach(btn => {
-            btn.addEventListener('click', () => {
-                currentTab = btn.getAttribute('data-tab');
-                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                if (currentTab === 'wallet') renderWallet();
-                else if (currentTab === 'charts') renderCharts();
-                else if (currentTab === 'swap') renderSwap();
-                else if (currentTab === 'more') renderProfile();
-            });
-        });
+        
+        document.querySelectorAll('.nav-item').forEach(btn => { btn.addEventListener('click', () => { currentTab = btn.getAttribute('data-tab'); document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(currentTab === 'wallet') renderWallet(); else if(currentTab === 'charts') renderCharts(); else if(currentTab === 'swap') renderSwap(); else if(currentTab === 'more') renderProfile(); }); });
         
         renderWallet();
     </script>
