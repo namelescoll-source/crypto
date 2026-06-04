@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>Crypto Bot - Анимированная биржа</title>
+    <title>Crypto Bot - Админ панель</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -31,44 +31,41 @@
 
         body {
             background: var(--bg-dark);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .particle {
-            position: absolute;
-            background: radial-gradient(circle, var(--green-primary), transparent);
-            border-radius: 50%;
-            opacity: 0;
-            animation: floatParticle 8s infinite;
-        }
-
-        @keyframes floatParticle {
-            0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            10% { opacity: 0.5; }
-            90% { opacity: 0.3; }
-            100% { transform: translateY(-100vh) scale(1); opacity: 0; }
-        }
-
+        /* Исправления для iPhone */
         .content {
             padding: 20px;
-            padding-bottom: 85px;
+            padding-bottom: 90px;
             position: relative;
             z-index: 1;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
+        /* Адаптация для безопасной зоны iPhone */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 17, 21, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 16px constant(safe-area-inset-bottom);
+            padding: 8px 16px env(safe-area-inset-bottom);
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        /* Анимации */
         .fade-enter {
             animation: fadeSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -78,6 +75,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Карточки */
         .wallet-header {
             background: linear-gradient(135deg, rgba(0, 212, 126, 0.15), rgba(59, 130, 246, 0.1));
             border-radius: 40px;
@@ -89,30 +87,8 @@
             overflow: hidden;
         }
 
-        .wallet-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, var(--green-glow) 0%, transparent 70%);
-            animation: rotateGlow 8s linear infinite;
-        }
-
-        @keyframes rotateGlow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .wallet-balance-label {
-            font-size: 14px;
-            color: var(--text-secondary);
-            letter-spacing: 1px;
-        }
-
         .wallet-balance {
-            font-size: 52px;
+            font-size: 48px;
             font-weight: 800;
             margin: 12px 0;
             background: linear-gradient(135deg, #fff, var(--green-primary), #fff);
@@ -120,29 +96,12 @@
             -webkit-text-fill-color: transparent;
             background-size: 200% auto;
             animation: shine 3s linear infinite;
+            word-break: break-word;
         }
 
         @keyframes shine {
             0% { background-position: 0% center; }
             100% { background-position: 200% center; }
-        }
-
-        .currency-selector {
-            background: rgba(10, 10, 12, 0.8);
-            border: 1px solid rgba(0, 212, 126, 0.3);
-            border-radius: 50px;
-            padding: 10px 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .currency-selector:hover {
-            border-color: var(--green-primary);
-            transform: scale(1.02);
-            box-shadow: 0 0 20px var(--green-glow);
         }
 
         .assets-grid {
@@ -159,29 +118,6 @@
             padding: 16px;
             border: 1px solid var(--border);
             transition: all 0.3s ease;
-            animation: fadeSlideUp 0.4s ease backwards;
-        }
-
-        .asset-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--green-primary);
-        }
-
-        .asset-icon {
-            font-size: 28px;
-            margin-bottom: 8px;
-            display: inline-block;
-        }
-
-        .asset-name {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .asset-amount {
-            font-size: 20px;
-            font-weight: 700;
-            margin-top: 8px;
         }
 
         .actions-grid {
@@ -200,170 +136,13 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(0, 212, 126, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.4s, height 0.4s;
-        }
-
-        .action-btn:active::before {
-            width: 200px;
-            height: 200px;
         }
 
         .action-btn:active {
             transform: scale(0.96);
         }
 
-        .action-icon {
-            font-size: 24px;
-            margin-bottom: 6px;
-            display: inline-block;
-            transition: transform 0.2s ease;
-        }
-
-        .action-btn:hover .action-icon {
-            transform: translateY(-3px) scale(1.1);
-        }
-
-        .action-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .price-card {
-            background: linear-gradient(135deg, var(--bg-card), rgba(13, 15, 20, 0.9));
-            border-radius: 32px;
-            padding: 24px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(0, 212, 126, 0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        .price-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .price-pair {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .price-change {
-            font-size: 14px;
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
-
-        .price-change.up { background: rgba(0, 212, 126, 0.15); color: var(--green-primary); }
-        .price-change.down { background: rgba(255, 71, 87, 0.15); color: var(--red); }
-
-        .price-main {
-            font-size: 42px;
-            font-weight: 800;
-            margin: 16px 0;
-        }
-
-        .trade-buttons {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .trade-btn {
-            flex: 1;
-            padding: 16px;
-            border-radius: 28px;
-            border: none;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .trade-btn.buy { background: linear-gradient(135deg, var(--green-primary), #00995a); color: white; }
-        .trade-btn.sell { background: linear-gradient(135deg, var(--red), #cc3b4a); color: white; }
-        .trade-btn:active { transform: scale(0.96); }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(15, 17, 21, 0.95);
-            backdrop-filter: blur(20px);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 8px 20px calc(12px + env(safe-area-inset-bottom, 0px));
-            border-top: 1px solid var(--border);
-            z-index: 1000;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            font-size: 11px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 8px 24px;
-            border-radius: 40px;
-            background: transparent;
-            border: none;
-        }
-
-        .nav-item i {
-            font-size: 24px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-item:hover i {
-            transform: translateY(-3px);
-        }
-
-        .nav-item.active {
-            color: var(--green-primary);
-        }
-
-        .nav-item.active i {
-            transform: translateY(-2px);
-            text-shadow: 0 0 10px var(--green-glow);
-        }
-
-        .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 3px;
-            background: var(--green-primary);
-            border-radius: 3px;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from { width: 0; opacity: 0; }
-            to { width: 30px; opacity: 1; }
-        }
-
+        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
@@ -381,72 +160,96 @@
 
         .modal.active {
             display: flex;
-            animation: fadeInUp 0.3s ease;
+            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
             background: linear-gradient(135deg, #13151a, #0d0f14);
             border-radius: 48px;
-            padding: 28px;
+            padding: 24px;
             width: 100%;
-            max-width: 380px;
+            max-width: 400px;
             border: 1px solid rgba(0, 212, 126, 0.3);
-            animation: modalPop 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
-        @keyframes modalPop {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .modal-content h3 {
-            text-align: center;
-            margin-bottom: 24px;
-            font-size: 24px;
-        }
-
-        .modal-input {
-            width: 100%;
-            padding: 16px;
-            background: rgba(10, 10, 12, 0.8);
-            border: 1px solid var(--border);
+        /* Админ-панель стили */
+        .admin-header {
+            background: linear-gradient(135deg, var(--orange), #ff5722);
             border-radius: 24px;
-            color: white;
-            font-size: 16px;
-            margin-bottom: 16px;
-            transition: all 0.2s ease;
-        }
-
-        .modal-input:focus {
-            outline: none;
-            border-color: var(--green-primary);
-            transform: scale(1.01);
-        }
-
-        .modal-buttons {
+            padding: 20px;
+            margin-bottom: 20px;
             display: flex;
-            gap: 12px;
-            margin-top: 24px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .pending-card {
+            background: rgba(10, 10, 12, 0.8);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pending-card:hover {
+            border-color: var(--orange);
+            transform: translateX(4px);
+        }
+
+        .status-pending {
+            background: var(--orange);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-approved {
+            background: var(--green-primary);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .receipt-image {
+            max-width: 100%;
+            border-radius: 20px;
+            margin: 16px 0;
+            border: 1px solid var(--border);
         }
 
         .modal-btn {
             flex: 1;
-            padding: 16px;
+            padding: 14px;
             border-radius: 30px;
             border: none;
             font-weight: 600;
-            font-size: 16px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
 
         .modal-btn.confirm {
-            background: linear-gradient(135deg, var(--green-primary), #00995a);
+            background: var(--green-primary);
             color: white;
         }
 
@@ -455,40 +258,60 @@
             color: var(--text-secondary);
         }
 
-        .modal-btn:active {
-            transform: scale(0.96);
+        .modal-btn.danger {
+            background: var(--red);
+            color: white;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 17, 21, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 16px constant(safe-area-inset-bottom);
+            padding: 8px 16px env(safe-area-inset-bottom);
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 10px;
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+        }
+
+        .nav-item.active {
+            color: var(--green-primary);
+        }
+
+        .nav-item i {
+            font-size: 22px;
         }
 
         .dropzone {
             border: 2px dashed var(--border);
             border-radius: 24px;
-            padding: 30px;
+            padding: 25px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
             margin: 16px 0;
         }
-
-        .dropzone:hover {
-            border-color: var(--green-primary);
-            background: rgba(0, 212, 126, 0.05);
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-        .status-pending { background: var(--orange); color: #000; }
-        .status-approved { background: var(--green-primary); color: #000; }
-        .status-rejected { background: var(--red); color: #fff; }
 
         .section-header {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
             margin-bottom: 16px;
         }
 
@@ -505,50 +328,16 @@
 
         .transaction-item {
             background: rgba(19, 21, 26, 0.8);
-            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border: 1px solid var(--border);
-            transition: all 0.2s;
-        }
-
-        .transaction-item:hover {
-            border-color: var(--green-primary);
-            transform: translateX(4px);
-        }
-
-        .transaction-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .transaction-icon {
-            width: 44px;
-            height: 44px;
-            background: var(--bg-dark);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .address-text {
-            background: rgba(10, 10, 12, 0.8);
-            padding: 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            word-break: break-all;
-            margin: 12px 0;
         }
     </style>
 </head>
 <body>
-    <div class="particles" id="particles"></div>
     <div class="content" id="app"></div>
 
     <div class="bottom-nav">
@@ -561,53 +350,31 @@
         <div class="modal-content" id="modalContent"></div>
     </div>
 
-    <div class="currency-grid-modal" id="currencyGridModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); backdrop-filter:blur(20px); z-index:3000; align-items:center; justify-content:center; padding:20px;">
-        <div style="background:linear-gradient(135deg,#13151a,#0d0f14); border-radius:48px; padding:24px; max-width:450px; width:100%; border:1px solid rgba(0,212,126,0.3);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3><i class="fas fa-coins"></i> Выберите валюту</h3>
-                <button onclick="closeCurrencyGrid()" style="background:rgba(255,255,255,0.1); border:none; width:36px; height:36px; border-radius:50%; color:white; cursor:pointer;"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="currency-grid" id="currencyGrid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;"></div>
-        </div>
+    <div class="modal" id="adminModal" style="display:none;">
+        <div class="modal-content" id="adminModalContent"></div>
     </div>
 
     <script>
+        // Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.enableClosingConfirmation();
         tg.ready();
 
-        function createParticles() {
-            const container = document.getElementById('particles');
-            for (let i = 0; i < 40; i++) {
-                const p = document.createElement('div');
-                p.className = 'particle';
-                p.style.left = Math.random() * 100 + '%';
-                p.style.width = p.style.height = Math.random() * 5 + 2 + 'px';
-                p.style.animationDelay = Math.random() * 8 + 's';
-                p.style.animationDuration = Math.random() * 6 + 4 + 's';
-                container.appendChild(p);
-            }
-        }
-        createParticles();
-
         const user = tg.initDataUnsafe?.user;
         const userName = user ? `${user.first_name} ${user.last_name || ''}` : 'Гость';
         const userId = user ? user.id : Math.floor(Math.random() * 1000000);
 
-        // ========== НАСТРОЙКИ АДМИНИСТРАТОРА ==========
-		// Укажите здесь свои Telegram ID (можно несколько через запятую)
-		const ADMIN_IDS = [8993992293];  // ВСТАВЬТЕ СВОЙ ID ВМЕСТО 123456789
-
-		const isAdmin = ADMIN_IDS.includes(userId) || localStorage.getItem('isAdminMode') === 'true';
-
-        // Курс USD к RUB
-        const USD_TO_RUB = 90;
+        // ========== АДМИНИСТРАТОРЫ ==========
+        // ВСТАВЬТЕ СВОЙ TELEGRAM ID СЮДА (узнать у @userinfobot)
+        const ADMIN_IDS = [123456789]; // ЗАМЕНИТЕ НА СВОЙ ID
         
-        // Курсы валют в USD
+        const isAdmin = ADMIN_IDS.includes(userId);
+
+        // Курсы валют
+        const USD_TO_RUB = 90;
         const exchangeRates = { USDT: 1.00, USDC: 0.9939, BTC: 67890, ETH: 3456, TON: 5.67, RUB: 0.0111 };
         
-        // Красивые иконки (Font Awesome, не эмодзи)
         const currencyIcons = {
             USDT: '<i class="fab fa-tether" style="color:#26A17B; font-size:28px;"></i>',
             USDC: '<i class="fas fa-dollar-sign" style="color:#2775CA; font-size:28px;"></i>',
@@ -617,10 +384,10 @@
             RUB: '<i class="fas fa-ruble-sign" style="color:#00d47e; font-size:28px;"></i>'
         };
 
-        // Данные пользователя с RUB
+        // Данные пользователя
         let userData = {
             balance: { USDT: 1250.50, USDC: 0, BTC: 0.0015, ETH: 0.05, TON: 100, RUB: 0 },
-            displayCurrency: 'USD', // 'USD' или 'RUB'
+            displayCurrency: 'USD',
             transactions: [],
             pendingPayments: [],
             totalDepositsUSD: 1250.50,
@@ -628,15 +395,25 @@
             failedDeposits: 0
         };
 
+        // Загрузка сохранённых данных
+        const savedData = localStorage.getItem('cryptoUserData');
+        if (savedData) {
+            const parsed = JSON.parse(savedData);
+            userData = { ...userData, ...parsed };
+        }
+
         let currentTab = 'wallet';
-        let currentPair = { from: 'USDC', to: 'USDT' };
         let currentPrice = 0.9939;
 
-        function saveData() { localStorage.setItem('cryptoUserData', JSON.stringify(userData)); }
-        function closeModal() { document.getElementById('modal').classList.remove('active'); }
-        function closeCurrencyGrid() { document.getElementById('currencyGridModal').style.display = 'none'; }
+        function saveData() {
+            localStorage.setItem('cryptoUserData', JSON.stringify(userData));
+        }
 
-        // Получение общего баланса в выбранной валюте отображения
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            document.getElementById('adminModal').style.display = 'none';
+        }
+
         function getTotalBalanceInDisplayCurrency() {
             let totalUSD = 0;
             for (const [cur, val] of Object.entries(userData.balance)) {
@@ -657,53 +434,313 @@
         }
 
         function addTransaction(type, title, amount, currency, status = 'success', details = '') {
-            userData.transactions.unshift({ 
-                id: Date.now(), type, title, amount, currency, status, details, 
-                date: new Date().toLocaleString() 
+            userData.transactions.unshift({
+                id: Date.now(), type, title, amount, currency, status, details,
+                date: new Date().toLocaleString()
             });
             if (userData.transactions.length > 50) userData.transactions.pop();
             saveData();
         }
 
-        // Переключение валюты отображения
         function toggleDisplayCurrency() {
             userData.displayCurrency = userData.displayCurrency === 'USD' ? 'RUB' : 'USD';
             saveData();
             renderWallet();
-            tg.showAlert(`Баланс отображается в ${userData.displayCurrency === 'USD' ? 'USD' : 'RUB'}`);
         }
 
-        // ========== ВЫБОР ВАЛЮТЫ ==========
-        function showCurrencyGrid() {
-            const grid = document.getElementById('currencyGrid');
-            const currencies = Object.keys(exchangeRates);
-            grid.innerHTML = currencies.map(curr => `
-                <div class="currency-item" data-currency="${curr}" style="background:rgba(10,10,12,0.6); border:1px solid var(--border); border-radius:20px; padding:14px; text-align:center; cursor:pointer; transition:all 0.2s;">
-                    <div style="font-size:32px;">${currencyIcons[curr] || '💰'}</div>
-                    <div style="font-weight:600; margin-top:4px;">${curr}</div>
-                    <div style="font-size:11px; color:var(--text-secondary);">${curr === 'RUB' ? `${USD_TO_RUB} ₽/USD` : `$${exchangeRates[curr]}`}</div>
+        // ========== АДМИН-ПАНЕЛЬ ==========
+        function showAdminPanel() {
+            const pending = userData.pendingPayments.filter(p => p.status === 'pending');
+            
+            document.getElementById('adminModalContent').innerHTML = `
+                <div class="admin-header">
+                    <span><i class="fas fa-crown"></i> <strong>Админ-панель</strong></span>
+                    <span class="admin-badge"><i class="fas fa-shield-alt"></i> ONLINE</span>
+                </div>
+                
+                <div class="section-header">
+                    <div class="section-title"><i class="fas fa-clock"></i> Ожидают проверки (${pending.length})</div>
+                </div>
+                
+                <div id="pendingList">
+                    ${pending.length > 0 ? pending.map(p => `
+                        <div class="pending-card" onclick="viewPayment(${p.id})">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div><strong><i class="fas fa-user"></i> ${p.userName}</strong></div>
+                                    <div style="font-size:13px; margin-top:4px;">
+                                        <i class="fas fa-coins"></i> ${p.amount} ${p.currency} 
+                                        <i class="fas fa-credit-card"></i> ${p.method}
+                                    </div>
+                                    <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">
+                                        <i class="fas fa-calendar"></i> ${p.date}
+                                    </div>
+                                </div>
+                                <div><span class="status-pending"><i class="fas fa-hourglass-half"></i> Ожидает</span></div>
+                            </div>
+                        </div>
+                    `).join('') : '<div style="text-align:center; padding:30px; color:var(--text-secondary);"><i class="fas fa-check-circle"></i> Нет заявок на проверку</div>'}
+                </div>
+                
+                <div class="section-header" style="margin-top:20px;">
+                    <div class="section-title"><i class="fas fa-check-circle"></i> Подтверждённые</div>
+                </div>
+                <div>
+                    ${userData.pendingPayments.filter(p => p.status === 'approved').slice(0,5).map(p => `
+                        <div class="pending-card" style="opacity:0.7;">
+                            <div style="display:flex; justify-content:space-between;">
+                                <div><strong>${p.userName}</strong><br>${p.amount} ${p.currency}</div>
+                                <div><span class="status-approved"><i class="fas fa-check"></i> Одобрено</span></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="modal-buttons" style="margin-top:20px;">
+                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
+                </div>
+            `;
+            
+            document.getElementById('adminModal').style.display = 'flex';
+        }
+
+        // Просмотр деталей платежа
+        window.viewPayment = function(paymentId) {
+            const payment = userData.pendingPayments.find(p => p.id === paymentId);
+            if (!payment) return;
+            
+            document.getElementById('adminModalContent').innerHTML = `
+                <div class="admin-header">
+                    <span><i class="fas fa-receipt"></i> <strong>Заявка #${payment.id}</strong></span>
+                    <span class="admin-badge">${payment.status === 'pending' ? '⏳ На проверке' : (payment.status === 'approved' ? '✅ Одобрено' : '❌ Отклонено')}</span>
+                </div>
+                
+                <div style="background:rgba(10,10,12,0.6); border-radius:24px; padding:16px; margin-bottom:16px;">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                        <div style="width:50px; height:50px; background:linear-gradient(135deg,var(--green-primary),#00995a); border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                            <i class="fas fa-user" style="font-size:24px;"></i>
+                        </div>
+                        <div>
+                            <div><strong>${payment.userName}</strong></div>
+                            <div style="font-size:12px; color:var(--text-secondary);">ID: ${payment.userId}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px;">
+                        <div><i class="fas fa-coins"></i> Валюта: <strong>${payment.currency}</strong></div>
+                        <div><i class="fas fa-dollar-sign"></i> Сумма: <strong>${payment.amount} USD</strong></div>
+                        <div><i class="fas fa-credit-card"></i> Способ: <strong>${payment.method}</strong></div>
+                        <div><i class="fas fa-calendar"></i> Дата: <strong>${payment.date}</strong></div>
+                    </div>
+                    
+                    ${payment.screenshot ? `
+                        <div style="margin-top:16px;">
+                            <div style="margin-bottom:8px;"><i class="fas fa-image"></i> Чек перевода:</div>
+                            <img src="${payment.screenshot}" class="receipt-image" style="max-width:100%; border-radius:16px;">
+                        </div>
+                    ` : '<div style="margin-top:16px; padding:12px; background:rgba(255,71,87,0.1); border-radius:16px;"><i class="fas fa-exclamation-triangle"></i> Чек не загружен</div>'}
+                </div>
+                
+                ${payment.status === 'pending' ? `
+                    <div class="modal-buttons" style="gap:12px;">
+                        <button class="modal-btn confirm" onclick="approvePayment(${payment.id})">
+                            <i class="fas fa-check"></i> Подтвердить пополнение
+                        </button>
+                        <button class="modal-btn danger" onclick="rejectPayment(${payment.id})">
+                            <i class="fas fa-times"></i> Отклонить
+                        </button>
+                    </div>
+                ` : ''}
+                
+                <button class="modal-btn cancel" onclick="showAdminPanel()" style="margin-top:12px;">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </button>
+            `;
+        };
+
+        // Подтверждение платежа
+        window.approvePayment = function(paymentId) {
+            const payment = userData.pendingPayments.find(p => p.id === paymentId);
+            if (payment && payment.status === 'pending') {
+                payment.status = 'approved';
+                
+                // Зачисляем средства
+                let amountInCurrency = payment.amount;
+                if (payment.currency === 'RUB') {
+                    amountInCurrency = payment.amount * USD_TO_RUB;
+                }
+                userData.balance[payment.currency] = (userData.balance[payment.currency] || 0) + amountInCurrency;
+                userData.totalDepositsUSD += payment.amount;
+                userData.successfulDeposits++;
+                
+                addTransaction('deposit', `Пополнение ${payment.currency}`, amountInCurrency, payment.currency, 'success', `Чек одобрен администратором (сумма: ${payment.amount} USD)`);
+                saveData();
+                
+                tg.showAlert(`✅ Пополнение подтверждено! Начислено ${amountInCurrency} ${payment.currency}`);
+                showAdminPanel();
+                renderWallet();
+                renderProfile();
+            }
+        };
+
+        // Отклонение платежа
+        window.rejectPayment = function(paymentId) {
+            const payment = userData.pendingPayments.find(p => p.id === paymentId);
+            if (payment && payment.status === 'pending') {
+                payment.status = 'rejected';
+                userData.failedDeposits++;
+                addTransaction('deposit', `Пополнение ${payment.currency}`, payment.amount, payment.currency, 'failed', `Чек отклонён администратором`);
+                saveData();
+                tg.showAlert(`❌ Пополнение отклонено!`);
+                showAdminPanel();
+                renderProfile();
+            }
+        };
+
+        // ========== ПОПОЛНЕНИЕ ==========
+        let screenshotDataUrl = null;
+        let selectedMethod = null;
+        let depositAmount = 0;
+
+        function showDepositModal() {
+            selectedMethod = null;
+            depositAmount = 0;
+            screenshotDataUrl = null;
+            
+            document.getElementById('modalContent').innerHTML = `
+                <h3 style="text-align:center;"><i class="fas fa-plus-circle"></i> Пополнение</h3>
+                <select id="depositCurrency" class="modal-input" style="width:100%; padding:14px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:20px; color:white; margin-bottom:16px;">
+                    <option value="USDT">USDT</option>
+                    <option value="USDC">USDC</option>
+                    <option value="BTC">BTC</option>
+                    <option value="ETH">ETH</option>
+                    <option value="TON">TON</option>
+                    <option value="RUB">RUB (Рубли)</option>
+                </select>
+                <input type="number" id="depositAmount" class="modal-input" placeholder="Сумма в USD" style="width:100%; padding:14px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:20px; color:white; margin-bottom:16px;">
+                
+                <div style="margin:16px 0;">
+                    <div style="margin-bottom:12px;">Способ оплаты:</div>
+                    <div id="paymentMethodsList"></div>
+                </div>
+                
+                <div id="paymentDetails"></div>
+                
+                <div id="screenshotSection" style="display:none;">
+                    <div class="dropzone" id="dropzone">
+                        <i class="fas fa-cloud-upload-alt" style="font-size:40px;"></i>
+                        <p>Нажмите для загрузки чека</p>
+                        <p style="font-size:11px; color:var(--text-secondary);">PNG, JPG до 5MB</p>
+                        <input type="file" id="screenshotInput" accept="image/*" style="display:none;">
+                    </div>
+                    <div id="screenshotPreview"></div>
+                </div>
+                
+                <div class="modal-buttons" style="display:flex; gap:12px; margin-top:20px;">
+                    <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
+                    <button class="modal-btn confirm" onclick="submitDeposit()">Отправить на проверку</button>
+                </div>
+            `;
+            
+            const paymentMethods = [
+                { id: 'card', name: 'Банковская карта', icon: '💳' },
+                { id: 'sbp', name: 'СБП', icon: '🏦' },
+                { id: 'ton', name: 'TON', icon: '💎' }
+            ];
+            
+            document.getElementById('paymentMethodsList').innerHTML = paymentMethods.map(m => `
+                <div class="payment-method" data-method="${m.id}" style="display:flex; align-items:center; gap:12px; padding:12px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:16px; margin-bottom:8px; cursor:pointer;">
+                    <div style="font-size:24px;">${m.icon}</div>
+                    <div><strong>${m.name}</strong></div>
                 </div>
             `).join('');
-            document.querySelectorAll('.currency-item').forEach(card => {
-                card.onclick = () => {
-                    closeCurrencyGrid();
-                    renderWallet();
-                    tg.showAlert(`Валюта выбрана`);
+            
+            document.querySelectorAll('.payment-method').forEach(method => {
+                method.onclick = () => {
+                    document.querySelectorAll('.payment-method').forEach(m => m.style.borderColor = '#1c1f26');
+                    method.style.borderColor = '#00d47e';
+                    selectedMethod = method.getAttribute('data-method');
+                    document.getElementById('screenshotSection').style.display = 'block';
+                    
+                    const amount = parseFloat(document.getElementById('depositAmount').value) || 0;
+                    document.getElementById('paymentDetails').innerHTML = `<div class="address-text" style="background:#0a0a0c; padding:12px; border-radius:16px; margin-top:12px;"><strong>💰 Реквизиты для перевода:</strong><br>Сумма: ${amount} USD<br>После оплаты приложите чек</div>`;
                 };
             });
-            document.getElementById('currencyGridModal').style.display = 'flex';
+            
+            const amountInput = document.getElementById('depositAmount');
+            amountInput.oninput = (e) => {
+                depositAmount = parseFloat(e.target.value) || 0;
+                if (selectedMethod) {
+                    document.getElementById('paymentDetails').innerHTML = `<div class="address-text" style="background:#0a0a0c; padding:12px; border-radius:16px; margin-top:12px;"><strong>💰 Реквизиты для перевода:</strong><br>Сумма: ${depositAmount} USD<br>После оплаты приложите чек</div>`;
+                }
+            };
+            
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('screenshotInput');
+            dropzone.onclick = () => fileInput.click();
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        screenshotDataUrl = ev.target.result;
+                        document.getElementById('screenshotPreview').innerHTML = `<div style="margin-top:12px; text-align:center;"><img src="${screenshotDataUrl}" style="max-width:100%; border-radius:16px;"><p style="color:var(--green-primary); margin-top:8px;">✅ Чек загружен</p></div>`;
+                        dropzone.style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function submitDeposit() {
+            const currency = document.getElementById('depositCurrency').value;
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            
+            if (!amount || amount < 10) {
+                tg.showAlert('❌ Введите сумму от 10 USD');
+                return;
+            }
+            if (!selectedMethod) {
+                tg.showAlert('❌ Выберите способ оплаты');
+                return;
+            }
+            if (!screenshotDataUrl) {
+                tg.showAlert('📸 Приложите чек перевода');
+                return;
+            }
+            
+            const pending = {
+                id: Date.now(),
+                userId: userId,
+                userName: userName,
+                amount: amount,
+                currency: currency,
+                method: selectedMethod,
+                screenshot: screenshotDataUrl,
+                date: new Date().toLocaleString(),
+                status: 'pending'
+            };
+            
+            userData.pendingPayments.unshift(pending);
+            saveData();
+            
+            tg.showAlert(`✅ Заявка #${pending.id} отправлена на проверку администратору!`);
+            closeModal();
+            renderWallet();
         }
 
         // ========== ОТПРАВКА ==========
         function showSendModal() {
             document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-paper-plane"></i> Отправить</h3>
-                <select id="sendCurrency" class="modal-input" style="background:rgba(10,10,12,0.8); border:1px solid var(--border); border-radius:24px; padding:16px; color:white;">
+                <h3 style="text-align:center;"><i class="fas fa-paper-plane"></i> Отправить</h3>
+                <select id="sendCurrency" class="modal-input" style="width:100%; padding:14px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:20px; color:white; margin-bottom:16px;">
                     ${Object.keys(userData.balance).map(c => `<option value="${c}">${c} (${userData.balance[c].toFixed(4)})</option>`).join('')}
                 </select>
-                <input type="text" id="sendToUser" class="modal-input" placeholder="👤 ID получателя или @username">
-                <input type="number" id="sendAmount" class="modal-input" placeholder="💸 Сумма">
-                <div class="modal-buttons">
+                <input type="text" id="sendToUser" class="modal-input" placeholder="👤 ID получателя или @username" style="width:100%; padding:14px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:20px; color:white; margin-bottom:16px;">
+                <input type="number" id="sendAmount" class="modal-input" placeholder="💸 Сумма" style="width:100%; padding:14px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:20px; color:white; margin-bottom:16px;">
+                <div class="modal-buttons" style="display:flex; gap:12px;">
                     <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
                     <button class="modal-btn confirm" onclick="sendToUser()">Отправить</button>
                 </div>
@@ -715,8 +752,16 @@
             const currency = document.getElementById('sendCurrency').value;
             const toUser = document.getElementById('sendToUser').value;
             const amount = parseFloat(document.getElementById('sendAmount').value);
-            if (!toUser || !amount || amount <= 0) { tg.showAlert('❌ Введите данные'); return; }
-            if (amount > userData.balance[currency]) { tg.showAlert(`❌ Недостаточно ${currency}!`); return; }
+            
+            if (!toUser || !amount || amount <= 0) {
+                tg.showAlert('❌ Введите данные');
+                return;
+            }
+            if (amount > userData.balance[currency]) {
+                tg.showAlert(`❌ Недостаточно ${currency}!`);
+                return;
+            }
+            
             tg.showConfirm(`Отправить ${amount} ${currency} пользователю ${toUser}?`, (confirmed) => {
                 if (confirmed) {
                     userData.balance[currency] -= amount;
@@ -730,82 +775,29 @@
             });
         }
 
-        // ========== ПОПОЛНЕНИЕ ==========
-        function showDepositModal() {
-            document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-plus-circle"></i> Пополнение</h3>
-                <select id="depositCurrency" class="modal-input">
-                    <option value="USDT">USDT</option><option value="USDC">USDC</option>
-                    <option value="BTC">BTC</option><option value="ETH">ETH</option>
-                    <option value="TON">TON</option><option value="RUB">RUB</option>
-                </select>
-                <input type="number" id="depositAmount" class="modal-input" placeholder="Сумма в USD">
-                <div class="dropzone" id="dropzone" style="border:2px dashed var(--border); border-radius:24px; padding:25px; text-align:center; cursor:pointer;">
-                    <i class="fas fa-cloud-upload-alt" style="font-size:36px;"></i>
-                    <p>Нажмите для загрузки чека</p>
-                    <input type="file" id="screenshotInput" accept="image/*" style="display:none;">
-                </div>
-                <div id="screenshotPreview"></div>
-                <div class="modal-buttons">
-                    <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
-                    <button class="modal-btn confirm" onclick="submitDeposit()">Отправить</button>
-                </div>
-            `;
-            const dropzone = document.getElementById('dropzone');
-            const fileInput = document.getElementById('screenshotInput');
-            dropzone.onclick = () => fileInput.click();
-            fileInput.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        document.getElementById('screenshotPreview').innerHTML = `<div style="margin-top:12px; text-align:center;"><img src="${ev.target.result}" style="max-width:100%; border-radius:16px;"><p style="color:var(--green-primary); margin-top:8px;">✅ Чек загружен</p></div>`;
-                        dropzone.style.display = 'none';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-            document.getElementById('modal').classList.add('active');
-        }
-
-        function submitDeposit() {
-            const currency = document.getElementById('depositCurrency').value;
-            const amount = parseFloat(document.getElementById('depositAmount').value);
-            if (!amount || amount < 10) { tg.showAlert('❌ Введите сумму от 10 USD'); return; }
-            
-            let depositAmountInCurrency = amount;
-            if (currency === 'RUB') {
-                depositAmountInCurrency = amount * USD_TO_RUB;
-            }
-            
-            userData.balance[currency] = (userData.balance[currency] || 0) + depositAmountInCurrency;
-            userData.totalDepositsUSD += amount;
-            userData.successfulDeposits++;
-            addTransaction('deposit', `Пополнение ${currency}`, depositAmountInCurrency, currency, 'success', `Сумма: ${amount} USD`);
-            saveData();
-            tg.showAlert(`✅ Баланс пополнен на ${depositAmountInCurrency} ${currency}`);
-            closeModal();
-            renderWallet();
-            renderProfile();
-        }
-
         // ========== ОБМЕН ==========
         function showSwapModal() {
             document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-exchange-alt"></i> Обмен</h3>
-                <select id="swapFrom" class="modal-input">${Object.keys(userData.balance).map(c => `<option value="${c}">${c} (${userData.balance[c].toFixed(4)})</option>`).join('')}</select>
-                <input type="number" id="swapAmount" class="modal-input" placeholder="Сумма">
-                <select id="swapTo" class="modal-input">
-                    <option value="USDT">USDT</option><option value="USDC">USDC</option>
-                    <option value="BTC">BTC</option><option value="ETH">ETH</option>
-                    <option value="TON">TON</option><option value="RUB">RUB</option>
+                <h3 style="text-align:center;"><i class="fas fa-exchange-alt"></i> Обмен валют</h3>
+                <select id="swapFrom" class="modal-input" style="width:100%; padding:14px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:20px; color:white; margin-bottom:16px;">
+                    ${Object.keys(userData.balance).map(c => `<option value="${c}">${c} (${userData.balance[c].toFixed(4)})</option>`).join('')}
                 </select>
-                <div id="swapInfo" style="background:rgba(10,10,12,0.8); border-radius:20px; padding:16px; margin:12px 0;"></div>
-                <div class="modal-buttons">
+                <input type="number" id="swapAmount" class="modal-input" placeholder="Сумма" style="width:100%; padding:14px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:20px; color:white; margin-bottom:16px;">
+                <select id="swapTo" class="modal-input" style="width:100%; padding:14px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:20px; color:white; margin-bottom:16px;">
+                    <option value="USDT">USDT</option>
+                    <option value="USDC">USDC</option>
+                    <option value="BTC">BTC</option>
+                    <option value="ETH">ETH</option>
+                    <option value="TON">TON</option>
+                    <option value="RUB">RUB</option>
+                </select>
+                <div id="swapInfo" style="background:rgba(10,10,12,0.6); border-radius:20px; padding:16px; margin:12px 0;"></div>
+                <div class="modal-buttons" style="display:flex; gap:12px;">
                     <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
                     <button class="modal-btn confirm" onclick="executeSwap()">Обменять</button>
                 </div>
             `;
+            
             function updateSwap() {
                 const from = document.getElementById('swapFrom').value;
                 const to = document.getElementById('swapTo').value;
@@ -819,6 +811,7 @@
                     <div style="display:flex; justify-content:space-between;"><span>Комиссия (0.2%)</span><span>${commission.toFixed(6)} ${to}</span></div>
                 `;
             }
+            
             document.getElementById('swapFrom').onchange = updateSwap;
             document.getElementById('swapTo').onchange = updateSwap;
             document.getElementById('swapAmount').oninput = updateSwap;
@@ -830,12 +823,21 @@
             const from = document.getElementById('swapFrom').value;
             const to = document.getElementById('swapTo').value;
             const amount = parseFloat(document.getElementById('swapAmount').value);
-            if (!amount || amount <= 0) { tg.showAlert('Введите сумму'); return; }
-            if (amount > userData.balance[from]) { tg.showAlert(`Недостаточно ${from}!`); return; }
+            
+            if (!amount || amount <= 0) {
+                tg.showAlert('Введите сумму');
+                return;
+            }
+            if (amount > userData.balance[from]) {
+                tg.showAlert(`Недостаточно ${from}!`);
+                return;
+            }
+            
             const rate = exchangeRates[to] / exchangeRates[from];
             const result = amount * rate;
             const commission = result * 0.002;
             const finalAmount = result - commission;
+            
             tg.showConfirm(`Обменять ${amount} ${from} на ${finalAmount.toFixed(6)} ${to}?`, (confirmed) => {
                 if (confirmed) {
                     userData.balance[from] -= amount;
@@ -845,15 +847,21 @@
                     tg.showAlert(`✅ Обмен выполнен! Получено ${finalAmount.toFixed(6)} ${to}`);
                     closeModal();
                     renderWallet();
+                    renderProfile();
                 }
             });
         }
 
         function showHistoryModal() {
             document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-history"></i> История</h3>
+                <h3 style="text-align:center;"><i class="fas fa-history"></i> История операций</h3>
                 <div style="max-height:400px; overflow-y:auto;">
-                    ${userData.transactions.map(tx => `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border);"><div><strong>${tx.title}</strong><br><small>${tx.date}</small><br><small>${tx.details || ''}</small></div><div><span class="status-badge ${tx.status === 'success' ? 'status-approved' : 'status-pending'}">${tx.status === 'success' ? '✅' : '⏳'}</span></div></div>`).join('')}
+                    ${userData.transactions.map(tx => `
+                        <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid var(--border);">
+                            <div><strong>${tx.title}</strong><br><small>${tx.date}</small><br><small>${tx.details || ''}</small></div>
+                            <div><span class="status-badge ${tx.status === 'success' ? 'status-approved' : 'status-pending'}">${tx.status === 'success' ? '✅' : '⏳'}</span></div>
+                        </div>
+                    `).join('')}
                 </div>
                 <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
             `;
@@ -864,26 +872,37 @@
         function renderExchange() {
             const change = ((currentPrice - 0.99) / 0.99 * 100).toFixed(2);
             document.getElementById('app').innerHTML = `
-                <div class="price-card fade-enter">
-                    <div class="price-header"><span class="price-pair">${currentPair.from} / ${currentPair.to}</span><span class="price-change ${change >= 0 ? 'up' : 'down'}">${change >= 0 ? `+${change}%` : `${change}%`}</span></div>
-                    <div class="price-main">${currentPrice.toFixed(4)}</div>
-                    <div class="price-stats" style="display:flex; gap:20px; margin-top:16px;"><div><div style="font-size:11px; color:var(--text-secondary);">Объём 24ч</div><div>22,051 USDT</div></div></div>
-                </div>
-                <div class="trade-buttons"><button class="trade-btn buy" data-mode="buy">📈 Купить</button><button class="trade-btn sell" data-mode="sell">📉 Продать</button></div>
-                <div class="price-card" style="padding:20px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span>Цена</span><span>${currentPrice.toFixed(4)} USDT</span></div>
-                    <input type="number" id="tradeAmount" class="modal-input" placeholder="Сумма в ${currentPair.from}" style="margin-bottom:12px;">
-                    <div class="percentage-buttons" style="display:flex; gap:8px; margin-bottom:16px;">
-                        <button class="perc-btn" data-percent="0.25" style="flex:1; padding:10px; background:rgba(10,10,12,0.8); border:1px solid var(--border); border-radius:16px;">25%</button>
-                        <button class="perc-btn" data-percent="0.5" style="flex:1; padding:10px; background:rgba(10,10,12,0.8); border:1px solid var(--border); border-radius:16px;">50%</button>
-                        <button class="perc-btn" data-percent="0.75" style="flex:1; padding:10px; background:rgba(10,10,12,0.8); border:1px solid var(--border); border-radius:16px;">75%</button>
-                        <button class="perc-btn" data-percent="1" style="flex:1; padding:10px; background:rgba(10,10,12,0.8); border:1px solid var(--border); border-radius:16px;">100%</button>
+                <div class="fade-enter">
+                    <div class="wallet-header">
+                        <div class="price-header" style="display:flex; justify-content:space-between;">
+                            <span class="price-pair" style="font-size:20px; font-weight:700;">USDC / USDT</span>
+                            <span class="price-change ${change >= 0 ? 'up' : 'down'}" style="padding:4px 12px; border-radius:20px; background:${change >= 0 ? 'rgba(0,212,126,0.15)' : 'rgba(255,71,87,0.15)'};">${change >= 0 ? `+${change}%` : `${change}%`}</span>
+                        </div>
+                        <div class="price-main" style="font-size:42px; font-weight:800; margin:16px 0;">${currentPrice.toFixed(4)}</div>
+                        <div style="display:flex; gap:20px;"><div><div style="font-size:11px; color:var(--text-secondary);">Объём 24ч</div><div>22,051 USDT</div></div></div>
                     </div>
-                    <div class="total-info" style="background:rgba(10,10,12,0.6); border-radius:16px; padding:12px; margin-bottom:12px;"><span>Всего</span><span id="totalValue">0 USDT</span></div>
-                    <div class="total-info" style="background:rgba(10,10,12,0.6); border-radius:16px; padding:12px;"><span>Комиссия (0.1%)</span><span id="commission">0 USDT</span></div>
-                    <button id="executeTradeBtn" class="trade-btn buy" style="margin-top:20px; width:100%;">Купить ${currentPair.from}</button>
+                    
+                    <div class="trade-buttons" style="display:flex; gap:12px; margin-bottom:20px;">
+                        <button class="trade-btn buy" data-mode="buy" style="flex:1; padding:16px; border-radius:28px; background:linear-gradient(135deg, #00d47e, #00995a); border:none; color:white; font-weight:700;">📈 Купить</button>
+                        <button class="trade-btn sell" data-mode="sell" style="flex:1; padding:16px; border-radius:28px; background:linear-gradient(135deg, #ff4757, #cc3b4a); border:none; color:white; font-weight:700;">📉 Продать</button>
+                    </div>
+                    
+                    <div class="wallet-header" style="padding:20px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span>Цена</span><span>${currentPrice.toFixed(4)} USDT</span></div>
+                        <input type="number" id="tradeAmount" class="modal-input" placeholder="Сумма в USDC" style="width:100%; padding:14px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:20px; color:white; margin-bottom:12px;">
+                        <div class="percentage-buttons" style="display:flex; gap:8px; margin-bottom:16px;">
+                            <button class="perc-btn" data-percent="0.25" style="flex:1; padding:10px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:16px;">25%</button>
+                            <button class="perc-btn" data-percent="0.5" style="flex:1; padding:10px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:16px;">50%</button>
+                            <button class="perc-btn" data-percent="0.75" style="flex:1; padding:10px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:16px;">75%</button>
+                            <button class="perc-btn" data-percent="1" style="flex:1; padding:10px; background:#0a0a0c; border:1px solid #1c1f26; border-radius:16px;">100%</button>
+                        </div>
+                        <div style="background:#0a0a0c; border-radius:16px; padding:12px; margin-bottom:12px; display:flex; justify-content:space-between;"><span>Всего</span><span id="totalValue">0 USDT</span></div>
+                        <div style="background:#0a0a0c; border-radius:16px; padding:12px; display:flex; justify-content:space-between;"><span>Комиссия (0.1%)</span><span id="commission">0 USDT</span></div>
+                        <button id="executeTradeBtn" class="trade-btn buy" style="margin-top:20px; width:100%; padding:16px; border-radius:28px; background:linear-gradient(135deg, #00d47e, #00995a); border:none; color:white; font-weight:700;">Купить USDC</button>
+                    </div>
                 </div>
             `;
+            
             let mode = 'buy';
             function updateTotal() {
                 const amount = parseFloat(document.getElementById('tradeAmount')?.value) || 0;
@@ -895,7 +914,7 @@
             document.querySelectorAll('.perc-btn').forEach(btn => {
                 btn.onclick = () => {
                     const percent = parseFloat(btn.getAttribute('data-percent'));
-                    const available = mode === 'buy' ? userData.balance.USDT / currentPrice : userData.balance[currentPair.from];
+                    const available = mode === 'buy' ? userData.balance.USDT / currentPrice : userData.balance.USDC;
                     document.getElementById('tradeAmount').value = (available * percent).toFixed(4);
                     updateTotal();
                 };
@@ -904,7 +923,7 @@
                 btn.onclick = () => {
                     mode = btn.getAttribute('data-mode');
                     const execBtn = document.getElementById('executeTradeBtn');
-                    execBtn.textContent = mode === 'buy' ? `Купить ${currentPair.from}` : `Продать ${currentPair.from}`;
+                    execBtn.textContent = mode === 'buy' ? `Купить USDC` : `Продать USDC`;
                     execBtn.className = `trade-btn ${mode}`;
                 };
             });
@@ -916,17 +935,17 @@
                 if (mode === 'buy') {
                     if (userData.balance.USDT >= total + commission) {
                         userData.balance.USDT -= total + commission;
-                        userData.balance[currentPair.from] += amount;
-                        addTransaction('buy', `Покупка ${currentPair.from}`, amount, currentPair.from, 'success', `Цена ${currentPrice} USDT`);
-                        tg.showAlert(`✅ Куплено ${amount.toFixed(4)} ${currentPair.from}`);
+                        userData.balance.USDC += amount;
+                        addTransaction('buy', 'Покупка USDC', amount, 'USDC', 'success', `Цена ${currentPrice} USDT`);
+                        tg.showAlert(`✅ Куплено ${amount.toFixed(4)} USDC`);
                     } else { tg.showAlert(`❌ Недостаточно USDT!`); return; }
                 } else {
-                    if (userData.balance[currentPair.from] >= amount) {
-                        userData.balance[currentPair.from] -= amount;
+                    if (userData.balance.USDC >= amount) {
+                        userData.balance.USDC -= amount;
                         userData.balance.USDT += total - commission;
-                        addTransaction('sell', `Продажа ${currentPair.from}`, amount, currentPair.from, 'success', `Цена ${currentPrice} USDT`);
-                        tg.showAlert(`✅ Продано ${amount.toFixed(4)} ${currentPair.from}`);
-                    } else { tg.showAlert(`❌ Недостаточно ${currentPair.from}!`); return; }
+                        addTransaction('sell', 'Продажа USDC', amount, 'USDC', 'success', `Цена ${currentPrice} USDT`);
+                        tg.showAlert(`✅ Продано ${amount.toFixed(4)} USDC`);
+                    } else { tg.showAlert(`❌ Недостаточно USDC!`); return; }
                 }
                 saveData();
                 renderWallet();
@@ -937,21 +956,14 @@
         // ========== КОШЕЛЕК ==========
         function renderWallet() {
             const totalDisplay = formatDisplayBalance();
-            const totalUSD = getTotalBalanceInDisplayCurrency();
             
             document.getElementById('app').innerHTML = `
                 <div class="wallet-header fade-enter">
                     <div class="wallet-balance-label">Общий баланс</div>
                     <div class="wallet-balance">${totalDisplay}</div>
-                    <div class="currency-selector" id="displayCurrencySelector">
+                    <div class="currency-selector" id="displayCurrencySelector" style="background:rgba(10,10,12,0.8); border:1px solid rgba(0,212,126,0.3); border-radius:50px; padding:10px 20px; display:inline-flex; align-items:center; gap:10px; cursor:pointer; margin-top:12px;">
                         <i class="fas fa-exchange-alt"></i>
                         <span>Показать в ${userData.displayCurrency === 'USD' ? 'RUB' : 'USD'}</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="currency-selector" id="currencySelector" style="margin-top:8px;">
-                        <i class="fas fa-coins"></i>
-                        <span>Выбрать валюту</span>
-                        <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
                 <div class="assets-grid">
@@ -977,20 +989,25 @@
                     <div class="action-btn" data-action="swap"><div class="action-icon"><i class="fas fa-exchange-alt"></i></div><div class="action-label">Обменять</div></div>
                     <div class="action-btn" data-action="history"><div class="action-icon"><i class="fas fa-history"></i></div><div class="action-label">История</div></div>
                 </div>
+                ${isAdmin ? `
+                    <div class="action-btn" id="adminPanelBtn" style="background:linear-gradient(135deg, #ff9800, #ff5722); margin-bottom:16px;">
+                        <i class="fas fa-crown"></i> Админ-панель
+                    </div>
+                ` : ''}
                 <div class="section-header"><div class="section-title">Последние операции</div></div>
                 <div class="transactions-list">
                     ${userData.transactions.slice(0,5).map(tx => `
                         <div class="transaction-item">
-                            <div class="transaction-left">
-                                <div class="transaction-icon"><i class="fas ${tx.type === 'deposit' ? 'fa-arrow-down' : (tx.type === 'send' ? 'fa-arrow-up' : 'fa-exchange-alt')}"></i></div>
+                            <div class="transaction-left" style="display:flex; align-items:center; gap:12px;">
+                                <div class="transaction-icon" style="width:44px; height:44px; background:#0a0a0c; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas ${tx.type === 'deposit' ? 'fa-arrow-down' : (tx.type === 'send' ? 'fa-arrow-up' : 'fa-exchange-alt')}"></i></div>
                                 <div class="transaction-info"><h4>${tx.title}</h4><p>${tx.date}</p></div>
                             </div>
-                            <div><span class="status-badge status-approved">✅</span></div>
+                            <div><span class="status-approved" style="background:var(--green-primary); padding:4px 10px; border-radius:20px;">✅</span></div>
                         </div>
                     `).join('')}
                 </div>
             `;
-            document.getElementById('currencySelector').onclick = showCurrencyGrid;
+            
             document.getElementById('displayCurrencySelector').onclick = toggleDisplayCurrency;
             document.querySelectorAll('.action-btn').forEach(btn => {
                 const action = btn.getAttribute('data-action');
@@ -999,9 +1016,12 @@
                 else if (action === 'swap') btn.onclick = showSwapModal;
                 else if (action === 'history') btn.onclick = showHistoryModal;
             });
+            if (isAdmin) {
+                document.getElementById('adminPanelBtn').onclick = showAdminPanel;
+            }
         }
 
-        // ========== ПРОФИЛЬ С КРАСИВЫМИ ИКОНКАМИ ==========
+        // ========== ПРОФИЛЬ ==========
         function renderProfile() {
             const totalDepositsDisplay = userData.displayCurrency === 'RUB' 
                 ? (userData.totalDepositsUSD * USD_TO_RUB).toFixed(2) 
@@ -1023,7 +1043,16 @@
                 <div class="section-header"><div class="section-title"><i class="fas fa-clock"></i> Мои заявки</div></div>
                 <div class="transactions-list">
                     ${userData.pendingPayments.slice(0,5).map(p => `
-                        <div class="transaction-item"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-clock"></i></div><div class="transaction-info"><h4>Заявка #${p.id}</h4><p>${p.amount} USD | ${p.date}</p></div></div><div><span class="status-badge ${p.status === 'approved' ? 'status-approved' : 'status-pending'}">${p.status === 'approved' ? '✅' : '⏳'}</span></div></div>
+                        <div class="transaction-item">
+                            <div class="transaction-left" style="display:flex; align-items:center; gap:12px;">
+                                <div class="transaction-icon"><i class="fas fa-clock"></i></div>
+                                <div class="transaction-info">
+                                    <h4>Заявка #${p.id}</h4>
+                                    <p>${p.amount} USD | ${p.date}</p>
+                                </div>
+                            </div>
+                            <div><span class="${p.status === 'approved' ? 'status-approved' : 'status-pending'}">${p.status === 'approved' ? '✅ Одобрено' : '⏳ Ожидает'}</span></div>
+                        </div>
                     `).join('')}
                 </div>
             `;
