@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>Crypto Bot</title>
+    <title>Crypto Bot - Платежная система</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -20,7 +20,9 @@
             --bg-dark: #0a0a0c;
             --bg-card: #13151a;
             --green-primary: #00d47e;
+            --blue: #3b82f6;
             --red: #ff4757;
+            --rub: #0057b8;
             --text-primary: #ffffff;
             --text-secondary: #8e8e93;
             --border: #1c1f26;
@@ -50,6 +52,18 @@
             padding: 24px;
             margin-bottom: 20px;
             border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--green-primary), var(--blue), var(--green-primary));
         }
 
         .balance-label {
@@ -65,6 +79,18 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .currency-selector {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-top: 12px;
         }
 
         .actions-grid {
@@ -102,6 +128,7 @@
             display: flex;
             gap: 12px;
             margin-bottom: 24px;
+            flex-wrap: wrap;
         }
 
         .stat-card {
@@ -110,6 +137,7 @@
             border-radius: 20px;
             padding: 16px;
             border: 1px solid var(--border);
+            min-width: 100px;
         }
 
         .stat-value {
@@ -144,6 +172,7 @@
             justify-content: space-between;
             align-items: center;
             border: 1px solid var(--border);
+            cursor: pointer;
         }
 
         .transaction-left {
@@ -245,6 +274,7 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            overflow-y: auto;
         }
 
         .modal.active {
@@ -256,8 +286,10 @@
             border-radius: 32px;
             padding: 24px;
             width: 100%;
-            max-width: 340px;
+            max-width: 400px;
             border: 1px solid var(--border);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-content h3 {
@@ -300,6 +332,62 @@
             color: var(--text-secondary);
         }
 
+        .payment-method {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .payment-method:hover, .payment-method.selected {
+            border-color: var(--green-primary);
+            background: rgba(0, 212, 126, 0.1);
+        }
+
+        .payment-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #1a1d24, var(--bg-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .currency-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .currency-item {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .currency-item.selected {
+            border-color: var(--green-primary);
+            background: rgba(0, 212, 126, 0.1);
+        }
+
+        .currency-symbol {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
         .address-text {
             background: var(--bg-dark);
             padding: 12px;
@@ -312,6 +400,10 @@
         canvas {
             width: 100%;
             height: 120px;
+        }
+
+        .rub-badge {
+            background: linear-gradient(135deg, #0057b8, #ffd700);
         }
     </style>
 </head>
@@ -330,57 +422,117 @@
     </div>
 
     <script>
-        // ========== ИНИЦИАЛИЗАЦИЯ TELEGRAM WEBAPP ==========
+        // ========== TELEGRAM WEBAPP ==========
         const tg = window.Telegram.WebApp;
-        
-        // РАСШИРЯЕМ НА ВЕСЬ ЭКРАН
         tg.expand();
-        
-        // ВКЛЮЧАЕМ ПОДТВЕРЖДЕНИЕ ЗАКРЫТИЯ
         tg.enableClosingConfirmation();
-        
-        // СООБЩАЕМ ЧТО ПРИЛОЖЕНИЕ ГОТОВО
         tg.ready();
-        
-        // УСТАНАВЛИВАЕМ ЦВЕТ ФОНА ПАНЕЛИ
         tg.setBottomBarColor('#0f1115');
-        
-        // ПОЛУЧАЕМ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ИЗ TELEGRAM
+
         const user = tg.initDataUnsafe?.user;
         const userName = user ? `${user.first_name} ${user.last_name || ''}` : 'Гость';
         const userId = user ? user.id : Math.floor(Math.random() * 1000000);
+
+        // ========== КУРСЫ ВАЛЮТ ==========
+        // 1 USD = 90 RUB (для конвертации)
+        const USD_TO_RUB = 90;
         
+        const exchangeRates = {
+            TON: 5.67,      // USD
+            BTC: 67890,     // USD
+            ETH: 3456,      // USD
+            USDT: 1.00,     // USD
+            BNB: 580,       // USD
+            SOL: 140,       // USD
+            TRX: 0.11,      // USD
+            LTC: 82,        // USD
+            DOGE: 0.12,     // USD
+            XRP: 0.62,      // USD
+            RUB: 1.00       // RUB (базовая)
+        };
+        
+        // Курсы в RUB для отображения
+        const ratesInRUB = {
+            TON: 5.67 * USD_TO_RUB,
+            BTC: 67890 * USD_TO_RUB,
+            ETH: 3456 * USD_TO_RUB,
+            USDT: 1.00 * USD_TO_RUB,
+            BNB: 580 * USD_TO_RUB,
+            SOL: 140 * USD_TO_RUB,
+            TRX: 0.11 * USD_TO_RUB,
+            LTC: 82 * USD_TO_RUB,
+            DOGE: 0.12 * USD_TO_RUB,
+            XRP: 0.62 * USD_TO_RUB,
+            RUB: 1.00
+        };
+
         // ========== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ==========
         let userData = {
-            balance: 1284.50,
-            staking: 350,
-            totalEarned: 42.5,
-            tonPrice: 5.67,
+            balance: 1284.50,  // в выбранной валюте
+            currency: 'TON',
+            staking: 350,      // в TON (базовая)
+            totalEarned: 42.5, // в TON (базовая)
             transactions: [
-                { id: 1, type: "send", title: "Отправлено", address: "0x742...3ef", amount: -50.25, date: new Date(Date.now() - 3600000).toLocaleString(), coin: "TON" },
-                { id: 2, type: "receive", title: "Получено", address: "Биржа Bybit", amount: 125.00, date: new Date(Date.now() - 86400000).toLocaleString(), coin: "TON" },
-                { id: 3, type: "bonus", title: "Бонус", address: "Реферальная программа", amount: 5.00, date: new Date(Date.now() - 172800000).toLocaleString(), coin: "TON" }
+                { id: Date.now() - 3600000, type: "send", title: "Отправлено", address: "0x742...3ef", amount: -50.25, date: new Date(Date.now() - 3600000).toLocaleString(), coin: "TON" },
+                { id: Date.now() - 86400000, type: "receive", title: "Получено", address: "Биржа Bybit", amount: 125.00, date: new Date(Date.now() - 86400000).toLocaleString(), coin: "TON" },
+                { id: Date.now() - 172800000, type: "bonus", title: "Бонус", address: "Реферальная программа", amount: 5.00, date: new Date(Date.now() - 172800000).toLocaleString(), coin: "TON" }
             ],
             swaps: [],
             referralCode: `CRYPTO${userId}`,
             referrals: 2,
             referralEarned: 12.50
         };
-        
+
         let currentTab = 'wallet';
         let chartData = [42, 38, 45, 52, 48, 55, 60, 58, 62, 68, 65, 70, 75, 72, 78, 82, 80, 85, 88, 92, 95, 90, 88, 85];
-        
-        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
-        function updateBalanceDisplay() {
-            const balanceEl = document.querySelector('.balance-amount');
-            if (balanceEl) balanceEl.innerHTML = userData.balance.toFixed(2) + ' TON';
-            const stakingEl = document.querySelector('.stat-card:first-child .stat-value');
-            if (stakingEl) stakingEl.innerHTML = userData.staking + ' TON';
-            const earnedEl = document.querySelector('.stat-card:last-child .stat-value');
-            if (earnedEl) earnedEl.innerHTML = '+' + userData.totalEarned.toFixed(2) + ' TON';
+
+        // ========== ФУНКЦИИ КОНВЕРТАЦИИ ==========
+        function getRateInUSD() {
+            if (userData.currency === 'RUB') {
+                return 1 / USD_TO_RUB;
+            }
+            return exchangeRates[userData.currency];
         }
         
-        function addTransaction(type, title, address, amount, coin = 'TON') {
+        function getBalanceInUSD() {
+            if (userData.currency === 'RUB') {
+                return userData.balance / USD_TO_RUB;
+            }
+            return userData.balance * exchangeRates[userData.currency];
+        }
+        
+        function getBalanceInRUB() {
+            return getBalanceInUSD() * USD_TO_RUB;
+        }
+        
+        function formatBalance() {
+            if (userData.currency === 'RUB') {
+                return `${userData.balance.toFixed(2)} ₽`;
+            }
+            return `${userData.balance.toFixed(4)} ${userData.currency}`;
+        }
+        
+        function getCurrencyPrice() {
+            if (userData.currency === 'RUB') {
+                return `1 ₽ = ${(1/USD_TO_RUB).toFixed(4)} USD`;
+            }
+            return `$${exchangeRates[userData.currency]}`;
+        }
+
+        function updateBalanceDisplay() {
+            const balanceEl = document.querySelector('.balance-amount');
+            if (balanceEl) balanceEl.innerHTML = formatBalance();
+            const usdEl = document.querySelector('.balance-usd');
+            if (usdEl) {
+                if (userData.currency === 'RUB') {
+                    usdEl.innerHTML = `≈ $${getBalanceInUSD().toFixed(2)} USD`;
+                } else {
+                    usdEl.innerHTML = `≈ $${getBalanceInUSD().toFixed(2)} USD | ₽${getBalanceInRUB().toFixed(2)}`;
+                }
+            }
+        }
+
+        function addTransaction(type, title, address, amount, coin = null) {
             userData.transactions.unshift({
                 id: Date.now(),
                 type: type,
@@ -388,21 +540,321 @@
                 address: address,
                 amount: amount,
                 date: new Date().toLocaleString(),
-                coin: coin
+                coin: coin || userData.currency
             });
             if (userData.transactions.length > 20) userData.transactions.pop();
         }
-        
+
         function closeModal() {
             document.getElementById('modal').classList.remove('active');
         }
+
+        // ========== ВЫБОР ВАЛЮТЫ ==========
+        function showCurrencyModal() {
+            const currencies = Object.keys(exchangeRates);
+            document.getElementById('modalContent').innerHTML = `
+                <h3><i class="fas fa-coins"></i> Выберите валюту</h3>
+                <div class="currency-list">
+                    ${currencies.map(curr => `
+                        <div class="currency-item ${userData.currency === curr ? 'selected' : ''}" data-currency="${curr}">
+                            <div class="currency-symbol">${getCurrencyIcon(curr)}</div>
+                            <div>${curr}</div>
+                            <div style="font-size:10px; color:var(--text-secondary);">${curr === 'RUB' ? '₽' + ratesInRUB[curr] : '$' + exchangeRates[curr]}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
+                </div>
+            `;
+            document.querySelectorAll('.currency-item').forEach(item => {
+                item.onclick = () => {
+                    const newCurrency = item.getAttribute('data-currency');
+                    const oldBalanceUSD = getBalanceInUSD();
+                    userData.currency = newCurrency;
+                    if (newCurrency === 'RUB') {
+                        userData.balance = oldBalanceUSD * USD_TO_RUB;
+                    } else {
+                        userData.balance = oldBalanceUSD / exchangeRates[newCurrency];
+                    }
+                    updateBalanceDisplay();
+                    if (currentTab === 'wallet') renderWallet();
+                    closeModal();
+                    tg.showAlert(`Валюта изменена на ${newCurrency}`);
+                };
+            });
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function getCurrencyIcon(currency) {
+            const icons = {
+                TON: '💎', BTC: '₿', ETH: 'Ξ', USDT: '💰',
+                BNB: '🔶', SOL: '◎', TRX: 'TRX', LTC: 'Ł', 
+                DOGE: 'Ð', XRP: 'XRP', RUB: '₽'
+            };
+            return icons[currency] || '🪙';
+        }
+
+        // ========== ПЛАТЕЖНАЯ СИСТЕМА ==========
+        let selectedPaymentMethod = null;
+        let depositAmount = 0;
+
+        function showDepositModal() {
+            selectedPaymentMethod = null;
+            depositAmount = 0;
+            
+            const isRUB = userData.currency === 'RUB';
+            const currencySymbol = isRUB ? '₽' : '$';
+            
+            document.getElementById('modalContent').innerHTML = `
+                <h3><i class="fas fa-plus-circle"></i> Пополнение баланса</h3>
+                <input type="number" id="depositAmount" class="modal-input" placeholder="Сумма в ${isRUB ? 'RUB' : 'USD'}" step="${isRUB ? 100 : 10}" min="${isRUB ? 100 : 10}">
+                <div style="margin: 16px 0;">
+                    <div style="margin-bottom: 12px; font-size:14px;">Способ оплаты:</div>
+                    <div id="paymentMethodsList"></div>
+                </div>
+                <div id="paymentDetails"></div>
+                <div class="modal-buttons">
+                    <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
+                    <button class="modal-btn confirm" onclick="processPayment()">Пополнить</button>
+                </div>
+            `;
+            
+            // Платежные методы с учётом RUB
+            const paymentMethods = [
+                { id: 'stars', name: 'Telegram Stars', icon: '⭐', desc: 'Официальная платежная система Telegram' },
+                { id: 'ton', name: 'TON (Telegram)', icon: '💎', desc: 'Прямой перевод в TON' },
+                { id: 'btc', name: 'Bitcoin', icon: '₿', desc: 'Сеть Bitcoin' },
+                { id: 'usdt', name: 'USDT (TRC-20)', icon: '💰', desc: 'Сеть TRC-20' },
+                { id: 'card', name: 'Банковская карта', icon: '💳', desc: 'Visa / Mastercard / МИР' },
+                { id: 'sbp', name: 'СБП', icon: '🏦', desc: 'Система быстрых платежей' },
+                { id: 'yoomoney', name: 'ЮMoney', icon: '💛', desc: 'Электронный кошелек' },
+                { id: 'rub', name: 'Перевод по СБП (₽)', icon: '🇷🇺', desc: 'Прямой рублевый перевод', rub: true }
+            ];
+            
+            const methodsHtml = paymentMethods.map(m => `
+                <div class="payment-method" data-method="${m.id}">
+                    <div class="payment-icon">${m.icon}</div>
+                    <div style="flex:1">
+                        <div><strong>${m.name}</strong></div>
+                        <div style="font-size:12px; color:var(--text-secondary);">${m.desc}</div>
+                    </div>
+                    <div><i class="fas fa-chevron-right"></i></div>
+                </div>
+            `).join('');
+            
+            document.getElementById('paymentMethodsList').innerHTML = methodsHtml;
+            
+            document.querySelectorAll('.payment-method').forEach(method => {
+                method.onclick = () => {
+                    document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+                    method.classList.add('selected');
+                    selectedPaymentMethod = method.getAttribute('data-method');
+                    showPaymentDetails();
+                };
+            });
+            
+            const amountInput = document.getElementById('depositAmount');
+            if (amountInput) {
+                amountInput.oninput = (e) => {
+                    depositAmount = parseFloat(e.target.value) || 0;
+                    if (selectedPaymentMethod) showPaymentDetails();
+                };
+            }
+            
+            document.getElementById('modal').classList.add('active');
+        }
         
-        // ========== ОТПРАВКА (ЧЕРЕЗ TELEGRAM) ==========
+        function showPaymentDetails() {
+            const amount = parseFloat(document.getElementById('depositAmount')?.value) || 0;
+            const detailsDiv = document.getElementById('paymentDetails');
+            const isRUB = userData.currency === 'RUB';
+            const minAmount = isRUB ? 100 : 10;
+            
+            if (!amount || amount < minAmount) {
+                detailsDiv.innerHTML = `<div style="color: var(--red); font-size:12px;">Минимальная сумма: ${minAmount} ${isRUB ? 'RUB' : 'USD'}</div>`;
+                return;
+            }
+            
+            // Конвертация суммы в целевую валюту
+            let cryptoAmount;
+            if (userData.currency === 'RUB') {
+                cryptoAmount = amount;
+            } else {
+                cryptoAmount = amount / exchangeRates[userData.currency];
+            }
+            
+            const rubAmount = isRUB ? amount : amount * USD_TO_RUB;
+            
+            const details = {
+                stars: `
+                    <div style="background: linear-gradient(135deg, #ffd70020, #ff8c0020); border-radius: 16px; padding: 16px; margin: 16px 0; text-align: center;">
+                        <div style="font-size: 48px;">⭐</div>
+                        <div style="margin: 8px 0;">Оплата через Telegram Stars</div>
+                        <div style="font-size: 24px; font-weight: 700;">${amount} Stars</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+                            Вы получите: ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency} ${isRUB ? '₽' : ''}
+                        </div>
+                    </div>
+                `,
+                ton: `
+                    <div class="address-text">
+                        <strong>Переведите TON на этот адрес:</strong><br>
+                        UQD0${Math.random().toString(36).substring(2, 20).toUpperCase()}<br>
+                        <strong>Сумма:</strong> ${(amount / (isRUB ? USD_TO_RUB : 1) / exchangeRates.TON).toFixed(4)} TON<br>
+                        <strong>Вы получите:</strong> ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency} ${isRUB ? '₽' : ''}<br>
+                        <small style="color: var(--text-secondary);">После перевода баланс обновится автоматически</small>
+                    </div>
+                `,
+                btc: `
+                    <div class="address-text">
+                        <strong>Переведите BTC на этот адрес:</strong><br>
+                        bc1q${Math.random().toString(36).substring(2, 20).toLowerCase()}<br>
+                        <strong>Сумма:</strong> ${((amount / (isRUB ? USD_TO_RUB : 1)) / exchangeRates.BTC).toFixed(8)} BTC<br>
+                        <strong>Вы получите:</strong> ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}
+                    </div>
+                `,
+                usdt: `
+                    <div class="address-text">
+                        <strong>Переведите USDT (TRC-20) на этот адрес:</strong><br>
+                        T${Math.random().toString(36).substring(2, 25).toUpperCase()}<br>
+                        <strong>Сумма:</strong> ${isRUB ? (amount / USD_TO_RUB).toFixed(2) : amount} USDT<br>
+                        <strong>Вы получите:</strong> ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}
+                    </div>
+                `,
+                card: `
+                    <div class="address-text">
+                        <strong>Оплата банковской картой</strong><br>
+                        Сумма: ${rubAmount.toFixed(2)} ₽ (≈ ${amount} ${isRUB ? 'RUB' : 'USD'})<br>
+                        После нажатия "Пополнить" откроется платежная форма<br>
+                        <small>Поддержка: Visa, Mastercard, МИР</small>
+                    </div>
+                `,
+                sbp: `
+                    <div class="address-text">
+                        <strong>Оплата через СБП</strong><br>
+                        Сумма: ${rubAmount.toFixed(2)} ₽<br>
+                        QR-код будет сгенерирован после подтверждения<br>
+                        <small>Комиссия: 0%</small>
+                    </div>
+                `,
+                yoomoney: `
+                    <div class="address-text">
+                        <strong>Перевод на ЮMoney</strong><br>
+                        Кошелек: 41001${Math.floor(Math.random() * 100000000)}<br>
+                        Сумма: ${rubAmount.toFixed(2)} ₽<br>
+                        <strong>Вы получите:</strong> ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}
+                    </div>
+                `,
+                rub: `
+                    <div class="address-text">
+                        <strong>🇷🇺 Рублевый перевод по СБП</strong><br>
+                        <strong>Сумма:</strong> ${rubAmount.toFixed(2)} ₽<br>
+                        <strong>Вы получите:</strong> ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}<br>
+                        <hr style="margin: 12px 0; border-color: var(--border);">
+                        <strong>Реквизиты:</strong><br>
+                        Банк: Т-Банк<br>
+                        Номер карты: 5536 9138 ${Math.floor(Math.random() * 10000)} ${Math.floor(Math.random() * 10000)}<br>
+                        Получатель: ${userName || 'Иван Иванов'}<br>
+                        <small style="color: var(--text-secondary);">После перевода нажмите "Я оплатил"</small>
+                    </div>
+                `
+            };
+            
+            detailsDiv.innerHTML = details[selectedPaymentMethod] || '';
+        }
+        
+        async function processPayment() {
+            const amount = parseFloat(document.getElementById('depositAmount')?.value) || 0;
+            const isRUB = userData.currency === 'RUB';
+            const minAmount = isRUB ? 100 : 10;
+            
+            if (!amount || amount < minAmount) {
+                tg.showAlert(`❌ Введите сумму от ${minAmount} ${isRUB ? 'RUB' : 'USD'}`);
+                return;
+            }
+            if (!selectedPaymentMethod) {
+                tg.showAlert('❌ Выберите способ оплаты');
+                return;
+            }
+            
+            let cryptoAmount;
+            if (userData.currency === 'RUB') {
+                cryptoAmount = amount;
+            } else {
+                cryptoAmount = amount / exchangeRates[userData.currency];
+            }
+            
+            // Telegram Stars
+            if (selectedPaymentMethod === 'stars') {
+                try {
+                    tg.showPopup({
+                        title: '⭐ Оплата Telegram Stars',
+                        message: `Списать ${amount} Stars для пополнения на ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}?`,
+                        buttons: [
+                            { id: 'cancel', type: 'cancel', text: 'Отмена' },
+                            { id: 'pay', type: 'default', text: 'Оплатить' }
+                        ]
+                    }, (buttonId) => {
+                        if (buttonId === 'pay') {
+                            userData.balance += cryptoAmount;
+                            addTransaction('receive', 'Пополнение через Stars', 'Telegram Stars', cryptoAmount);
+                            updateBalanceDisplay();
+                            if (currentTab === 'wallet') renderWallet();
+                            tg.showAlert(`✅ Баланс пополнен на ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}!`);
+                            closeModal();
+                        }
+                    });
+                } catch(e) {
+                    userData.balance += cryptoAmount;
+                    addTransaction('receive', 'Пополнение (DEMO)', 'Платежная система', cryptoAmount);
+                    updateBalanceDisplay();
+                    if (currentTab === 'wallet') renderWallet();
+                    tg.showAlert(`✅ ДЕМО: Баланс пополнен на ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}!`);
+                    closeModal();
+                }
+                return;
+            }
+            
+            // Рублевый перевод
+            if (selectedPaymentMethod === 'rub') {
+                tg.showConfirm(`Подтверждаете перевод ${(amount * (isRUB ? 1 : USD_TO_RUB)).toFixed(2)} ₽? После оплаты баланс пополнится.`, (confirmed) => {
+                    if (confirmed) {
+                        setTimeout(() => {
+                            userData.balance += cryptoAmount;
+                            addTransaction('receive', 'Пополнение через СБП', 'Рублевый перевод', cryptoAmount);
+                            updateBalanceDisplay();
+                            if (currentTab === 'wallet') renderWallet();
+                            tg.showAlert(`✅ Баланс пополнен на ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}!`);
+                        }, 3000);
+                        closeModal();
+                    }
+                });
+                return;
+            }
+            
+            // Крипто-платежи
+            tg.showConfirm(`После перевода баланс пополнится автоматически. Продолжить?`, (confirmed) => {
+                if (confirmed) {
+                    tg.showAlert(`💰 Инструкция по оплате отправлена! После перевода баланс обновится.`);
+                    setTimeout(() => {
+                        userData.balance += cryptoAmount;
+                        addTransaction('receive', `Пополнение через ${selectedPaymentMethod.toUpperCase()}`, 'Внешний перевод', cryptoAmount);
+                        updateBalanceDisplay();
+                        if (currentTab === 'wallet') renderWallet();
+                        tg.showAlert(`✅ Баланс пополнен на ${cryptoAmount.toFixed(isRUB ? 2 : 6)} ${userData.currency}!`);
+                    }, 3000);
+                    closeModal();
+                }
+            });
+        }
+
+        // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ==========
         function showSendModal() {
             document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-paper-plane"></i> Отправить TON</h3>
+                <h3><i class="fas fa-paper-plane"></i> Отправить ${userData.currency}</h3>
                 <input type="text" id="sendAddress" class="modal-input" placeholder="Адрес получателя">
-                <input type="number" id="sendAmount" class="modal-input" placeholder="Сумма в TON">
+                <input type="number" id="sendAmount" class="modal-input" placeholder="Сумма в ${userData.currency}">
                 <div class="modal-buttons">
                     <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
                     <button class="modal-btn confirm" onclick="sendTransaction()">Отправить</button>
@@ -424,37 +876,44 @@
                 return;
             }
             if (amount > userData.balance) {
-                tg.showAlert(`❌ Недостаточно средств! Баланс: ${userData.balance.toFixed(2)} TON`);
+                tg.showAlert(`❌ Недостаточно средств! Баланс: ${userData.balance.toFixed(4)} ${userData.currency}`);
                 return;
             }
             
-            tg.showConfirm(`Отправить ${amount} TON на адрес ${address.slice(0,6)}...${address.slice(-4)}?`, (confirmed) => {
+            tg.showConfirm(`Отправить ${amount} ${userData.currency} на адрес ${address.slice(0,6)}...${address.slice(-4)}?`, (confirmed) => {
                 if (confirmed) {
                     userData.balance -= amount;
                     addTransaction('send', 'Отправлено', address.slice(0,10)+'...', -amount);
                     updateBalanceDisplay();
                     if (currentTab === 'wallet') renderWallet();
-                    tg.showAlert(`✅ Успешно отправлено ${amount} TON!`, () => closeModal());
+                    tg.showAlert(`✅ Отправлено ${amount} ${userData.currency}!`, () => closeModal());
                 }
             });
         }
         
-        // ========== ПОЛУЧЕНИЕ ==========
         function showReceiveModal() {
-            const walletAddress = `UQ${Math.random().toString(36).substring(2, 15).toUpperCase()}`;
+            let walletAddress;
+            if (userData.currency === 'RUB') {
+                walletAddress = `Номер карты: 5536 9138 ${Math.floor(Math.random() * 10000)} ${Math.floor(Math.random() * 10000)}`;
+            } else if (userData.currency === 'BTC') {
+                walletAddress = `bc1q${Math.random().toString(36).substring(2, 20).toLowerCase()}`;
+            } else if (userData.currency === 'ETH') {
+                walletAddress = `0x${Math.random().toString(36).substring(2, 30).toUpperCase()}`;
+            } else {
+                walletAddress = `UQ${Math.random().toString(36).substring(2, 20).toUpperCase()}`;
+            }
+            
             document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-qrcode"></i> Получить TON</h3>
+                <h3><i class="fas fa-qrcode"></i> Получить ${userData.currency}</h3>
                 <div style="text-align:center; padding:10px;">
                     <div style="background:white; display:inline-block; padding:15px; border-radius:20px; margin-bottom:15px;">
                         <i class="fas fa-qrcode" style="font-size:80px; color:#000;"></i>
                     </div>
                     <div class="address-text">
-                        <strong>Ваш адрес:</strong><br>
+                        <strong>${userData.currency === 'RUB' ? 'Реквизиты для перевода:' : 'Ваш адрес для ' + userData.currency + ':'}</strong><br>
                         ${walletAddress}
                     </div>
-                    <p style="margin-top:16px; font-size:12px; color:var(--text-secondary);">
-                        Отправьте TON на этот адрес. Средства поступят автоматически.
-                    </p>
+                    ${userData.currency === 'RUB' ? '<div style="margin-top:12px; font-size:12px; color:var(--text-secondary);">Поддерживаются переводы по СБП и на карту</div>' : ''}
                 </div>
                 <div class="modal-buttons">
                     <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
@@ -462,180 +921,7 @@
             `;
             document.getElementById('modal').classList.add('active');
         }
-        
-        // ========== ПОКУПКА ==========
-        function showBuyModal() {
-            document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-shopping-cart"></i> Купить TON</h3>
-                <input type="number" id="buyAmount" class="modal-input" placeholder="Сумма в USD">
-                <div style="background: var(--bg-dark); border-radius: 16px; padding: 16px; margin: 8px 0;">
-                    <div style="display: flex; justify-content: space-between;"><span>Цена TON:</span><span>$${userData.tonPrice}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 8px;"><span>Вы получите:</span><span id="estimatedTon">0 TON</span></div>
-                </div>
-                <div class="modal-buttons">
-                    <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
-                    <button class="modal-btn confirm" onclick="buyTon()">Купить</button>
-                </div>
-            `;
-            const amountInput = document.getElementById('buyAmount');
-            if (amountInput) {
-                amountInput.oninput = () => {
-                    const usd = parseFloat(amountInput.value) || 0;
-                    document.getElementById('estimatedTon').innerText = (usd / userData.tonPrice).toFixed(4) + ' TON';
-                };
-            }
-            document.getElementById('modal').classList.add('active');
-        }
-        
-        function buyTon() {
-            const usdAmount = parseFloat(document.getElementById('buyAmount')?.value || 0);
-            if (!usdAmount || usdAmount <= 0) {
-                tg.showAlert('❌ Введите сумму в USD');
-                return;
-            }
-            const tonAmount = usdAmount / userData.tonPrice;
-            tg.showConfirm(`Купить ${tonAmount.toFixed(4)} TON за $${usdAmount}?`, (confirmed) => {
-                if (confirmed) {
-                    userData.balance += tonAmount;
-                    addTransaction('receive', 'Покупка TON', 'Банковская карта', tonAmount);
-                    updateBalanceDisplay();
-                    if (currentTab === 'wallet') renderWallet();
-                    tg.showAlert(`✅ Куплено ${tonAmount.toFixed(4)} TON!`, () => closeModal());
-                }
-            });
-        }
-        
-        // ========== ОБМЕН ==========
-        function performSwap() {
-            const fromAmount = parseFloat(document.getElementById('fromAmount')?.value || 0);
-            if (!fromAmount || fromAmount <= 0) {
-                tg.showAlert('❌ Введите сумму для обмена');
-                return;
-            }
-            if (fromAmount > userData.balance) {
-                tg.showAlert(`❌ Недостаточно TON! Баланс: ${userData.balance.toFixed(2)} TON`);
-                return;
-            }
-            const toAmount = fromAmount * userData.tonPrice;
-            tg.showConfirm(`Обменять ${fromAmount} TON на ${toAmount.toFixed(2)} USDT?`, (confirmed) => {
-                if (confirmed) {
-                    userData.balance -= fromAmount;
-                    addTransaction('swap', 'Обмен валют', `TON → USDT`, -fromAmount);
-                    userData.swaps.unshift({
-                        id: Date.now(),
-                        from: 'TON', to: 'USDT',
-                        amount: fromAmount, result: toAmount,
-                        date: new Date().toLocaleString()
-                    });
-                    updateBalanceDisplay();
-                    if (currentTab === 'swap') renderSwap();
-                    tg.showAlert(`✅ Обмен выполнен! Получено ${toAmount.toFixed(2)} USDT`);
-                    const fromInput = document.getElementById('fromAmount');
-                    if (fromInput) fromInput.value = '';
-                    const toInput = document.getElementById('toAmount');
-                    if (toInput) toInput.value = '';
-                }
-            });
-        }
-        
-        // ========== ГРАФИК ==========
-        function drawChart() {
-            const canvas = document.getElementById('priceChart');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const width = canvas.clientWidth;
-            const height = canvas.clientHeight;
-            canvas.width = width;
-            canvas.height = height;
-            const padding = 20;
-            const chartWidth = width - padding * 2;
-            const chartHeight = height - padding * 2;
-            const maxValue = Math.max(...chartData);
-            const minValue = Math.min(...chartData);
-            const range = maxValue - minValue;
-            ctx.clearRect(0, 0, width, height);
-            ctx.strokeStyle = '#1c1f26';
-            ctx.lineWidth = 0.5;
-            for (let i = 0; i <= 4; i++) {
-                const y = padding + (chartHeight / 4) * i;
-                ctx.beginPath();
-                ctx.moveTo(padding, y);
-                ctx.lineTo(width - padding, y);
-                ctx.stroke();
-            }
-            ctx.beginPath();
-            let first = true;
-            chartData.forEach((value, index) => {
-                const x = padding + (chartWidth / (chartData.length - 1)) * index;
-                const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
-                if (first) { ctx.moveTo(x, y); first = false; }
-                else { ctx.lineTo(x, y); }
-            });
-            ctx.strokeStyle = '#00d47e';
-            ctx.lineWidth = 2.5;
-            ctx.stroke();
-        }
-        
-        // ========== РЕФЕРАЛКА ==========
-        function showReferralModal() {
-            document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-users"></i> Реферальная программа</h3>
-                <div style="background: var(--bg-dark); border-radius: 16px; padding: 16px; margin: 16px 0;">
-                    <div style="display: flex; justify-content: space-between;"><span>Приглашено друзей:</span><span style="color:var(--green-primary);">${userData.referrals}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 8px;"><span>Заработано:</span><span style="color:var(--green-primary);">+${userData.referralEarned} TON</span></div>
-                </div>
-                <div class="address-text">
-                    <strong>Ваша ссылка:</strong><br>
-                    https://t.me/${tg.initDataUnsafe?.user?.username || 'crypto_bot'}?start=${userData.referralCode}
-                </div>
-                <div class="modal-buttons" style="margin-top: 20px;">
-                    <button class="modal-btn confirm" onclick="copyReferralLink()">Копировать ссылку</button>
-                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
-                </div>
-            `;
-            document.getElementById('modal').classList.add('active');
-        }
-        
-        function copyReferralLink() {
-            const link = `https://t.me/${tg.initDataUnsafe?.user?.username || 'crypto_bot'}?start=${userData.referralCode}`;
-            navigator.clipboard.writeText(link);
-            tg.showAlert('✅ Ссылка скопирована!');
-        }
-        
-        function showSecurityModal() {
-            document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-shield-alt"></i> Безопасность</h3>
-                <div class="address-text" style="margin: 16px 0;">
-                    <div style="display: flex; justify-content: space-between; padding: 12px 0;"><span>2FA аутентификация</span><span style="color:var(--green-primary);">Вкл</span></div>
-                    <div style="display: flex; justify-content: space-between; padding: 12px 0;"><span>Биометрический вход</span><span style="color:var(--text-secondary);">Откл</span></div>
-                    <div style="display: flex; justify-content: space-between; padding: 12px 0;"><span>Доверенные устройства</span><span style="color:var(--green-primary);">3</span></div>
-                </div>
-                <div class="modal-buttons"><button class="modal-btn cancel" onclick="closeModal()">Закрыть</button></div>
-            `;
-            document.getElementById('modal').classList.add('active');
-        }
-        
-        function showSupportModal() {
-            document.getElementById('modalContent').innerHTML = `
-                <h3><i class="fas fa-headset"></i> Поддержка</h3>
-                <div class="address-text" style="margin: 16px 0;">
-                    <p>Свяжитесь с нами:</p>
-                    <p style="margin-top: 12px;">📧 support@cryptobot.com</p>
-                    <p>📱 Telegram: @crypto_support</p>
-                </div>
-                <div class="modal-buttons">
-                    <button class="modal-btn confirm" onclick="openSupportChat()">Написать</button>
-                    <button class="modal-btn cancel" onclick="closeModal()">Закрыть</button>
-                </div>
-            `;
-            document.getElementById('modal').classList.add('active');
-        }
-        
-        function openSupportChat() {
-            tg.openTelegramLink('https://t.me/durov');
-            closeModal();
-        }
-        
+
         function showHistoryModal() {
             document.getElementById('modalContent').innerHTML = `
                 <h3><i class="fas fa-history"></i> Все транзакции</h3>
@@ -643,87 +929,145 @@
                     ${userData.transactions.map(tx => `
                         <div style="display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border);">
                             <div><strong>${tx.title}</strong><br><small>${tx.date}</small></div>
-                            <div style="color: ${tx.amount > 0 ? '#00d47e' : '#ff4757'}">${tx.amount > 0 ? '+' : ''}${tx.amount.toFixed(2)} ${tx.coin}</div>
+                            <div style="color: ${tx.amount > 0 ? '#00d47e' : '#ff4757'}">${tx.amount > 0 ? '+' : ''}${tx.amount.toFixed(4)} ${tx.coin}</div>
                         </div>
                     `).join('')}
                 </div>
-                <div class="modal-buttons" style="margin-top:16px;"><button class="modal-btn cancel" onclick="closeModal()">Закрыть</button></div>
+                <div class="modal-buttons"><button class="modal-btn cancel" onclick="closeModal()">Закрыть</button></div>
             `;
             document.getElementById('modal').classList.add('active');
         }
-        
+
         // ========== ОТРИСОВКА ВКЛАДОК ==========
         function renderWallet() {
+            const stakingInCurrent = userData.currency === 'RUB' 
+                ? (userData.staking * exchangeRates.TON * USD_TO_RUB).toFixed(2)
+                : (userData.staking * exchangeRates.TON / exchangeRates[userData.currency]).toFixed(4);
+                
+            const earnedInCurrent = userData.currency === 'RUB'
+                ? (userData.totalEarned * exchangeRates.TON * USD_TO_RUB).toFixed(2)
+                : (userData.totalEarned * exchangeRates.TON / exchangeRates[userData.currency]).toFixed(4);
+            
             document.getElementById('app').innerHTML = `
                 <div class="balance-card">
                     <div class="balance-label">Общий баланс</div>
-                    <div class="balance-amount">${userData.balance.toFixed(2)} TON</div>
-                    <div class="balance-change positive"><i class="fas fa-arrow-up"></i> +12.5% за неделю</div>
+                    <div class="balance-amount">${formatBalance()}</div>
+                    <div class="balance-usd" style="font-size:14px; color:var(--text-secondary);">
+                        ${userData.currency === 'RUB' ? `≈ $${getBalanceInUSD().toFixed(2)} USD` : `≈ $${getBalanceInUSD().toFixed(2)} USD | ₽${getBalanceInRUB().toFixed(2)}`}
+                    </div>
+                    <div class="currency-selector" id="currencySelector">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>${userData.currency}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
                 </div>
                 <div class="actions-grid">
                     <div class="action-btn" data-action="send"><div class="action-icon"><i class="fas fa-paper-plane"></i></div><div class="action-label">Отправить</div></div>
                     <div class="action-btn" data-action="receive"><div class="action-icon"><i class="fas fa-qrcode"></i></div><div class="action-label">Получить</div></div>
-                    <div class="action-btn" data-action="buy"><div class="action-icon"><i class="fas fa-shopping-cart"></i></div><div class="action-label">Купить</div></div>
+                    <div class="action-btn" data-action="deposit"><div class="action-icon"><i class="fas fa-plus-circle"></i></div><div class="action-label">Пополнить</div></div>
                     <div class="action-btn" data-action="history"><div class="action-icon"><i class="fas fa-history"></i></div><div class="action-label">История</div></div>
                 </div>
                 <div class="stats-row">
-                    <div class="stat-card"><div><i class="fas fa-chart-simple"></i> В стейкинге</div><div class="stat-value">${userData.staking} TON</div></div>
-                    <div class="stat-card"><div><i class="fas fa-coins"></i> Доход</div><div class="stat-value">+${userData.totalEarned.toFixed(2)} TON</div></div>
+                    <div class="stat-card"><div><i class="fas fa-chart-simple"></i> В стейкинге</div><div class="stat-value">${stakingInCurrent} ${userData.currency === 'RUB' ? '₽' : userData.currency}</div></div>
+                    <div class="stat-card"><div><i class="fas fa-coins"></i> Доход</div><div class="stat-value">+${earnedInCurrent} ${userData.currency === 'RUB' ? '₽' : userData.currency}</div></div>
                 </div>
                 <div class="section-header"><div class="section-title">Последние транзакции</div></div>
                 <div class="transactions-list">
                     ${userData.transactions.slice(0,5).map((tx, i) => `
-                        <div class="transaction-item" style="animation-delay: ${i * 0.05}s">
+                        <div class="transaction-item">
                             <div class="transaction-left">
                                 <div class="transaction-icon"><i class="fas ${tx.type === 'send' ? 'fa-arrow-up' : (tx.type === 'receive' ? 'fa-arrow-down' : 'fa-gift')}"></i></div>
                                 <div class="transaction-info"><h4>${tx.title}</h4><p>${tx.address}</p></div>
                             </div>
                             <div class="transaction-amount">
-                                <div class="amount ${tx.amount > 0 ? 'positive' : 'negative'}">${tx.amount > 0 ? '+' : ''}${tx.amount.toFixed(2)} ${tx.coin}</div>
+                                <div class="amount ${tx.amount > 0 ? 'positive' : 'negative'}">${tx.amount > 0 ? '+' : ''}${tx.amount.toFixed(4)} ${tx.coin}</div>
                                 <div class="transaction-date">${tx.date}</div>
                             </div>
                         </div>
                     `).join('')}
                 </div>
             `;
+            
+            document.getElementById('currencySelector').onclick = showCurrencyModal;
             document.querySelectorAll('.action-btn').forEach(btn => {
                 const action = btn.getAttribute('data-action');
                 btn.onclick = () => {
                     if (action === 'send') showSendModal();
                     else if (action === 'receive') showReceiveModal();
-                    else if (action === 'buy') showBuyModal();
+                    else if (action === 'deposit') showDepositModal();
                     else if (action === 'history') showHistoryModal();
                 };
             });
             updateBalanceDisplay();
         }
-        
+
         function renderCharts() {
+            const priceDisplay = userData.currency === 'RUB' 
+                ? `${ratesInRUB[userData.currency]} ₽`
+                : `$${exchangeRates[userData.currency]}`;
+                
             document.getElementById('app').innerHTML = `
-                <div class="section-header"><div class="section-title">TON / USDT</div></div>
+                <div class="section-header"><div class="section-title">${userData.currency} / ${userData.currency === 'RUB' ? 'USD' : 'USD'}</div></div>
                 <div class="balance-card"><canvas id="priceChart" style="width:100%; height:120px;"></canvas></div>
                 <div class="stats-row">
-                    <div class="stat-card"><div>Цена TON</div><div class="stat-value">$${userData.tonPrice}</div></div>
+                    <div class="stat-card"><div>Цена ${userData.currency}</div><div class="stat-value">${priceDisplay}</div></div>
                     <div class="stat-card"><div>24ч изменение</div><div class="stat-value" style="color:#00d47e;">+2.34%</div></div>
                 </div>
-                <div class="section-header"><div class="section-title">Популярные пары</div></div>
-                <div class="transactions-list">
-                    <div class="transaction-item"><div class="transaction-left"><div class="transaction-icon"><i class="fab fa-bitcoin"></i></div><div class="transaction-info"><h4>BTC/TON</h4><p>11,234 TON</p></div></div><div class="transaction-amount"><div class="amount positive">+1.23%</div><div class="transaction-date">$67,890</div></div></div>
-                    <div class="transaction-item"><div class="transaction-left"><div class="transaction-icon"><i class="fab fa-ethereum"></i></div><div class="transaction-info"><h4>ETH/TON</h4><p>610 TON</p></div></div><div class="transaction-amount"><div class="amount positive">+0.56%</div><div class="transaction-date">$3,456</div></div></div>
+                ${userData.currency === 'RUB' ? `
+                <div class="stats-row">
+                    <div class="stat-card"><div>Курс USD/RUB</div><div class="stat-value">${USD_TO_RUB} ₽</div></div>
+                    <div class="stat-card"><div>Курс TON/RUB</div><div class="stat-value">${(exchangeRates.TON * USD_TO_RUB).toFixed(2)} ₽</div></div>
                 </div>
+                ` : ''}
             `;
-            setTimeout(() => drawChart(), 100);
+            setTimeout(() => {
+                const canvas = document.getElementById('priceChart');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    const width = canvas.clientWidth;
+                    const height = canvas.clientHeight;
+                    canvas.width = width;
+                    canvas.height = height;
+                    const padding = 20;
+                    const chartWidth = width - padding * 2;
+                    const chartHeight = height - padding * 2;
+                    const maxValue = Math.max(...chartData);
+                    const minValue = Math.min(...chartData);
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.strokeStyle = '#1c1f26';
+                    for (let i = 0; i <= 4; i++) {
+                        const y = padding + (chartHeight / 4) * i;
+                        ctx.beginPath();
+                        ctx.moveTo(padding, y);
+                        ctx.lineTo(width - padding, y);
+                        ctx.stroke();
+                    }
+                    ctx.beginPath();
+                    let first = true;
+                    chartData.forEach((value, index) => {
+                        const x = padding + (chartWidth / (chartData.length - 1)) * index;
+                        const y = padding + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight;
+                        if (first) { ctx.moveTo(x, y); first = false; }
+                        else { ctx.lineTo(x, y); }
+                    });
+                    ctx.strokeStyle = '#00d47e';
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                }
+            }, 100);
         }
-        
+
         function renderSwap() {
+            const targetCurrency = userData.currency === 'RUB' ? 'USDT' : 'USDT';
+            
             document.getElementById('app').innerHTML = `
                 <div class="balance-card">
                     <div style="margin-bottom:20px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Отправляете</span><span>Баланс: ${userData.balance.toFixed(2)} TON</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Отправляете</span><span>Баланс: ${userData.balance.toFixed(4)} ${userData.currency}</span></div>
                         <div style="background:#0a0a0c; border-radius:20px; padding:16px;">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <input type="number" id="fromAmount" placeholder="0" style="background:transparent; border:none; font-size:28px; color:white; outline:none; width:60%;">
-                                <div><i class="fab fa-telegram"></i> TON</div>
+                                <div class="currency-selector" style="margin:0;">${userData.currency} <i class="fas fa-chevron-down"></i></div>
                             </div>
                         </div>
                     </div>
@@ -731,50 +1075,109 @@
                     <div><div style="background:#0a0a0c; border-radius:20px; padding:16px; margin-top:8px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <input type="text" id="toAmount" placeholder="0" readonly style="background:transparent; border:none; font-size:28px; color:white; outline:none; width:60%;">
-                            <div><i class="fas fa-dollar-sign"></i> USDT</div>
+                            <div class="currency-selector" style="margin:0;">${targetCurrency} <i class="fas fa-chevron-down"></i></div>
                         </div>
                     </div></div>
                 </div>
                 <button id="swapActionBtn" style="width:100%; padding:16px; background:var(--green-primary); color:white; font-weight:600; border:none; border-radius:20px; margin-top:16px;"><i class="fas fa-exchange-alt"></i> Обменять</button>
-                <div class="section-header" style="margin-top:24px;"><div class="section-title">История обменов</div></div>
-                <div class="transactions-list">${userData.swaps.length === 0 ? '<div style="text-align:center; padding:20px; color:var(--text-secondary);">История пуста</div>' : userData.swaps.map(s => `<div class="transaction-item"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-sync-alt"></i></div><div class="transaction-info"><h4>Обмен</h4><p>${s.from} → ${s.to}</p></div></div><div class="transaction-amount"><div>${s.amount} ${s.from}</div><div class="transaction-date">+${s.result.toFixed(2)} ${s.to}</div></div></div>`).join('')}</div>
             `;
+            
             const fromInput = document.getElementById('fromAmount');
             const toInput = document.getElementById('toAmount');
             if (fromInput && toInput) {
                 fromInput.oninput = () => {
                     const val = parseFloat(fromInput.value) || 0;
-                    toInput.value = (val * userData.tonPrice).toFixed(2);
+                    let usdValue;
+                    if (userData.currency === 'RUB') {
+                        usdValue = val / USD_TO_RUB;
+                    } else {
+                        usdValue = val * exchangeRates[userData.currency];
+                    }
+                    toInput.value = usdValue.toFixed(4);
                 };
             }
-            document.getElementById('swapActionBtn').onclick = performSwap;
+            
+            document.getElementById('swapActionBtn').onclick = () => {
+                const amount = parseFloat(fromInput.value) || 0;
+                if (amount <= 0) tg.showAlert('Введите сумму');
+                else if (amount > userData.balance) tg.showAlert('Недостаточно средств');
+                else {
+                    let usdValue;
+                    if (userData.currency === 'RUB') {
+                        usdValue = amount / USD_TO_RUB;
+                    } else {
+                        usdValue = amount * exchangeRates[userData.currency];
+                    }
+                    tg.showConfirm(`Обменять ${amount} ${userData.currency} на ${usdValue.toFixed(4)} USDT?`, (confirmed) => {
+                        if (confirmed) {
+                            userData.balance -= amount;
+                            addTransaction('swap', 'Обмен', `${userData.currency} → USDT`, -amount);
+                            updateBalanceDisplay();
+                            renderWallet();
+                            tg.showAlert('✅ Обмен выполнен!');
+                        }
+                    });
+                }
+            };
         }
-        
+
         function renderProfile() {
+            const referralLink = `https://t.me/${tg.initDataUnsafe?.user?.username || 'crypto_bot'}?start=${userData.referralCode}`;
+            
             document.getElementById('app').innerHTML = `
                 <div class="balance-card" style="text-align:center;">
                     <div style="width:80px;height:80px;background:linear-gradient(135deg,#00d47e,#00995a);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;"><i class="fas fa-user" style="font-size:40px;"></i></div>
                     <h3>${userName}</h3>
                     <p style="color:var(--text-secondary);margin-top:4px;">ID: ${userId}</p>
+                    <p style="color:var(--text-secondary);font-size:12px;margin-top:4px;">Выбранная валюта: ${userData.currency}</p>
                 </div>
                 <div class="transactions-list">
-                    <div class="transaction-item" data-action="referral"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-users"></i></div><div class="transaction-info"><h4>Реферальная программа</h4><p>Пригласи друзей и получай бонусы</p></div></div><div><i class="fas fa-chevron-right"></i></div></div>
-                    <div class="transaction-item" data-action="security"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-shield-alt"></i></div><div class="transaction-info"><h4>Безопасность</h4><p>2FA, доверенные устройства</p></div></div><div><i class="fas fa-chevron-right"></i></div></div>
-                    <div class="transaction-item" data-action="support"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-headset"></i></div><div class="transaction-info"><h4>Поддержка</h4><p>Помощь и обратная связь</p></div></div><div><i class="fas fa-chevron-right"></i></div></div>
-                    <div class="transaction-item" data-action="close"><div class="transaction-left"><div class="transaction-icon"><i class="fas fa-sign-out-alt"></i></div><div class="transaction-info"><h4>Закрыть приложение</h4><p>Выйти из Crypto Bot</p></div></div><div><i class="fas fa-chevron-right"></i></div></div>
+                    <div class="transaction-item" data-action="referral">
+                        <div class="transaction-left">
+                            <div class="transaction-icon"><i class="fas fa-users"></i></div>
+                            <div class="transaction-info">
+                                <h4>Реферальная программа</h4>
+                                <p>Пригласи друзей и получай бонусы</p>
+                            </div>
+                        </div>
+                        <div><i class="fas fa-chevron-right"></i></div>
+                    </div>
+                    <div class="transaction-item" data-action="support">
+                        <div class="transaction-left">
+                            <div class="transaction-icon"><i class="fas fa-headset"></i></div>
+                            <div class="transaction-info">
+                                <h4>Поддержка</h4>
+                                <p>Помощь и обратная связь</p>
+                            </div>
+                        </div>
+                        <div><i class="fas fa-chevron-right"></i></div>
+                    </div>
+                    <div class="transaction-item" data-action="close">
+                        <div class="transaction-left">
+                            <div class="transaction-icon"><i class="fas fa-sign-out-alt"></i></div>
+                            <div class="transaction-info">
+                                <h4>Закрыть приложение</h4>
+                                <p>Выйти из Crypto Bot</p>
+                            </div>
+                        </div>
+                        <div><i class="fas fa-chevron-right"></i></div>
+                    </div>
                 </div>
             `;
+            
             document.querySelectorAll('.transaction-item[data-action]').forEach(item => {
                 const action = item.dataset.action;
                 item.onclick = () => {
-                    if (action === 'referral') showReferralModal();
-                    else if (action === 'security') showSecurityModal();
-                    else if (action === 'support') showSupportModal();
-                    else if (action === 'close') tg.close();
+                    if (action === 'referral') {
+                        navigator.clipboard.writeText(referralLink);
+                        tg.showAlert('✅ Реферальная ссылка скопирована!');
+                    } else if (action === 'support') {
+                        tg.openTelegramLink('https://t.me/durov');
+                    } else if (action === 'close') tg.close();
                 };
             });
         }
-        
+
         // ========== НАВИГАЦИЯ ==========
         document.querySelectorAll('.nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
